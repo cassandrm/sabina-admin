@@ -31,6 +31,7 @@ azure-core==1.35.0
 
 # AWS Bedrock (for AI-assisted rule improvement)
 boto3>=1.35.0
+strands-agents>=0.1.0
 
 # HTTP & Networking
 httpx==0.28.1

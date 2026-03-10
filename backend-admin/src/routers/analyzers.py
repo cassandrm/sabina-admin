@@ -34,49 +34,19 @@ def _safe_json_loads(s: str):
 
 @router.get("/analyzers")
 async def get_analyzers(
+    db: Session = Depends(get_db),
     current_user: dict = Depends(security.get_current_user)
 ) -> Dict[str, List[Dict[str, Any]]]:
     """
-    Get list of available Azure Content Understanding analyzers.
+    Get list of available Azure Content Understanding analyzers (custom only).
     Requires user authentication.
-    
+
     Returns:
         Dict with list of analyzers containing analyzer_id and description
     """
-    try:
-        # Check if Azure credentials are configured
-        if not settings.azure_content_understanding_endpoint or not settings.azure_content_understanding_key:
-            logger.warning("Azure Content Understanding not configured")
-            return {"analyzers": []}
-        
-        from azure.ai.contentunderstanding import ContentUnderstandingClient
-        from azure.core.credentials import AzureKeyCredential
-        
-        client = ContentUnderstandingClient(
-            endpoint=settings.azure_content_understanding_endpoint,
-            credential=AzureKeyCredential(settings.azure_content_understanding_key)
-        )
-        
-        # List all analyzers
-        analyzers = client.list_analyzers()
-        analyzer_list = []
-        
-        for analyzer in analyzers:
-            analyzer_list.append({
-                "analyzer_id": analyzer.analyzer_id,
-                "description": getattr(analyzer, 'description', None)
-            })
-        
-        logger.info(f"Retrieved {len(analyzer_list)} analyzers")
-        return {"analyzers": analyzer_list}
-        
-    except ImportError:
-        logger.error("Azure Content Understanding SDK not installed")
-        return {"analyzers": []}
-    except Exception as e:
-        logger.error(f"Error fetching analyzers: {e}")
-        # Return empty list instead of error to not break the UI
-        return {"analyzers": []}
+    from ..services.content_understanding_service import ContentUnderstandingService
+    service = ContentUnderstandingService(db)
+    return service.get_analyzers()
 
 
 @router.post("/analyzers/analyze")

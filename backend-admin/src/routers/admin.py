@@ -28,6 +28,11 @@ logger = logging.getLogger(__name__)
 CONFIG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config")
 
 
+def _to_pascal_label(analyzer_id: str) -> str:
+    """Converte 'dichiarazione_soggetti' → 'Dichiarazione Soggetti'."""
+    return " ".join(word.capitalize() for word in analyzer_id.replace("-", "_").split("_"))
+
+
 def _safe_json_loads(s: str):
     """
     Robust JSON parser for LLM output that may contain:
@@ -213,17 +218,19 @@ def update_schema(
 
 
 @router.post("/schemas", response_model=DocumentTypeRead)
-def create_schema(
+async def create_schema(
     schema_create: DocumentTypeCreate,
     db: Session = Depends(get_db),
     current_user: dict = Depends(security.get_current_user)
 ):
     """
     Create a new document type schema.
+    Generates validation_rules via AWS Bedrock using the field schema retrieved
+    from Azure Content Understanding for the given analyzer_id.
     Requires user authentication.
     """
-    logger.info(f"Creating schema for analyzer_id={schema_create.analyzer_id}")
-    
+    logger.info(f"[create_schema] Creazione schema per analyzer_id='{schema_create.analyzer_id}'")
+
     existing = db.query(DocumentType).filter(
         DocumentType.analyzer_id == schema_create.analyzer_id
     ).first()
@@ -233,27 +240,111 @@ def create_schema(
             detail=f"Schema with analyzer_id '{schema_create.analyzer_id}' already exists"
         )
 
+    # ── Step 1: recupera lo schema dell'analyzer da Azure Content Understanding ──
+    from ..services.content_understanding_service import ContentUnderstandingService
+
+    service = ContentUnderstandingService(db)
+    logger.info(
+        f"[create_schema] Recupero schema analyzer da Azure Content Understanding "
+        f"per analyzer_id='{schema_create.analyzer_id}'"
+    )
+    analyzer_schema = await service.extractSchemaForAnalyzer(schema_create.analyzer_id)
+
+    if not analyzer_schema.get("schema"):
+        logger.error(
+            f"[create_schema] Impossibile recuperare lo schema per "
+            f"analyzer_id='{schema_create.analyzer_id}'"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Impossibile recuperare lo schema dell'analyzer '{schema_create.analyzer_id}' da Azure Content Understanding"
+        )
+
+    # ── Step 2: genera le validation_rules tramite LLM ──────────────────────────
+    logger.info(
+        f"[create_schema] Avvio generazione iniziale delle validation_rules "
+        f"per analyzer_id='{schema_create.analyzer_id}'"
+    )
+    gen_result = await service.generateValidationRulesFromSchema(analyzer_schema)
+
+    validation_rules = gen_result.get("validation_rules")
+    if validation_rules is None:
+        error_detail = gen_result.get("error", "Errore sconosciuto")
+        logger.error(
+            f"[create_schema] Errore nella generazione delle validation_rules: {error_detail}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore nella generazione delle validation rules: {error_detail}"
+        )
+
+    logger.info(
+        f"[create_schema] Validation rules generate con successo "
+        f"({gen_result.get('num_field_rules', 0)} field rules, "
+        f"{gen_result.get('num_cross_rules', 0)} cross-field rules)"
+    )
+
+    # ── Step 3: salva lo schema con le regole in DB ──────────────────────────────
+    schema_data = schema_create.model_dump()
+    schema_data["validation_rules"] = validation_rules
+    logger.info(f"[create_schema] Inserimento nuovo schema in DB: {schema_data}")
+
     try:
-        schema_data = schema_create.model_dump()
         new_schema = DocumentType(**schema_data)
         db.add(new_schema)
         db.commit()
         db.refresh(new_schema)
-        
-        logger.info(f"New schema created with ID {new_schema.id}")
-        
+
+        logger.info(f"[create_schema] Nuovo schema creato con ID {new_schema.id}")
+
+        # ── Step 4: crea/aggiorna il file YAML di config ────────────────────────
+        analyzer_id = new_schema.analyzer_id
+        config_path = os.path.join(CONFIG_DIR, f"{analyzer_id}.yaml")
+        try:
+            validation_rules_json = json.dumps(validation_rules, indent=2, ensure_ascii=False)
+            indented_json = "\n".join("  " + line for line in validation_rules_json.splitlines())
+
+            if os.path.exists(config_path):
+                # File esiste: aggiorna solo la sezione validation_rules
+                with open(config_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                pattern = r'(validation_rules:\s*\|)\n((?:[ \t]+.*\n?)*)'
+                replacement = r'\1\n' + indented_json + '\n'
+                new_content = re.sub(pattern, replacement, content)
+                if new_content == content:
+                    # Sezione non trovata: appendila
+                    new_content = content.rstrip("\n") + f"\n\nvalidation_rules: |\n{indented_json}\n"
+            else:
+                # File non esiste: crealo con tutti i campi
+                label_name = _to_pascal_label(analyzer_id)
+                pattern_val = new_schema.patterns or ""
+                new_content = (
+                    f"name: {analyzer_id}\n\n"
+                    f"label_name: {label_name}\n\n"
+                    f"pattern: {pattern_val}\n\n"
+                    f"analyzer_id: {analyzer_id}\n\n"
+                    f"validation_rules: |\n{indented_json}\n"
+                )
+
+            with open(config_path, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            logger.info(f"[create_schema] File di configurazione salvato: {config_path}")
+        except Exception as yaml_err:
+            logger.error(f"[create_schema] Errore nel salvataggio del file YAML: {yaml_err}")
+            # Non blocca la risposta: il DB è già aggiornato
+
         schema_dict = {
             "id": new_schema.id,
             "name": new_schema.name,
             "label": new_schema.label,
             "patterns": new_schema.patterns,
             "analyzer_id": new_schema.analyzer_id,
-            "validation_rules": new_schema.validation_rules
+            "validation_rules": new_schema.validation_rules,
         }
         return DocumentTypeRead(**schema_dict)
     except Exception as e:
         db.rollback()
-        logger.error(f"Error creating schema: {e}")
+        logger.error(f"[create_schema] Errore durante l'inserimento in DB: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error creating schema: {str(e)}"
@@ -436,6 +527,11 @@ async def improve_rules_with_ai(
     if not schema:
         raise HTTPException(status_code=404, detail=f"Schema con ID {schema_id} non trovato")
 
+    is_initial_generation = not body.current_rules
+    operation_label = "Generazione iniziale" if is_initial_generation else "Rigenerazione"
+    schema_label = schema.name or schema.analyzer_id or str(schema_id)
+    logger.info(f"{operation_label} delle regole di validazione per lo schema '{schema_label}' (ID: {schema_id})")
+
     try:
         import boto3
     except ImportError:
@@ -497,7 +593,7 @@ async def improve_rules_with_ai(
             raw = raw.strip()
 
         improved_rules = _safe_json_loads(raw)
-        logger.info(f"AI improved rules for schema {schema_id}")
+        logger.info(f"{operation_label} delle regole di validazione completata con successo per lo schema '{schema_label}' (ID: {schema_id})")
         return {"improved_rules": improved_rules}
 
     except HTTPException:

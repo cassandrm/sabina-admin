@@ -13,7 +13,7 @@ validation_rules: |
         "field": "Documento.Titolo",
         "required": true,
         "maxLength": 500,
-        "minLength": 3,
+        "minLength": 10,
         "label_field": "Titolo del documento",
         "requiredMessage": "Il titolo del documento è obbligatorio."
       },
