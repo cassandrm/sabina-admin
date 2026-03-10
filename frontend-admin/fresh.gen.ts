@@ -17,6 +17,7 @@ import * as $login from "./routes/login.tsx";
 import * as $AuthGuard from "./islands/AuthGuard.tsx";
 import * as $DocumentTypesDashboard from "./islands/DocumentTypesDashboard.tsx";
 import * as $LoginForm from "./islands/LoginForm.tsx";
+import * as $LogoutButton from "./islands/LogoutButton.tsx";
 import * as $SchemaEditor from "./islands/SchemaEditor.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -39,6 +40,7 @@ const manifest = {
         "./islands/AuthGuard.tsx": $AuthGuard,
         "./islands/DocumentTypesDashboard.tsx": $DocumentTypesDashboard,
         "./islands/LoginForm.tsx": $LoginForm,
+        "./islands/LogoutButton.tsx": $LogoutButton,
         "./islands/SchemaEditor.tsx": $SchemaEditor,
     },
     baseUrl: import.meta.url,

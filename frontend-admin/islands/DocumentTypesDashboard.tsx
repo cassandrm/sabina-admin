@@ -78,26 +78,10 @@ export default function DocumentTypesDashboard() {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("username");
-        window.location.href = "/login";
-    };
-
     return (
         <div className="document-types-dashboard" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', background: '#f7f7f7', minHeight: '100vh', height: 'auto', margin: 0, padding: '1rem', boxSizing: 'border-box', overflowX: 'hidden' }}>
             {modal && <Modal message={modal.message} spinner={modal.spinner} onClose={modal.onClose} />}
 
-            {/* Header with logout */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h2 style={{ margin: 0, color: '#1976d2' }}>Document Types</h2>
-                <button
-                    onClick={handleLogout}
-                    style={{ padding: '0.5rem 1rem', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                    LogoutAAA
-                </button>
-            </div>
 
             {editingSchema ? (
                 <SchemaEditor
