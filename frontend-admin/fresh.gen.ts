@@ -6,6 +6,7 @@ import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $api_admin_schemas_id_ from "./routes/api/admin/schemas/[id].ts";
 import * as $api_admin_schemas_id_validation_rules from "./routes/api/admin/schemas/[id]/validation-rules.ts";
+import * as $api_admin_schemas_id_improve_rules from "./routes/api/admin/schemas/[id]/improve-rules.ts";
 import * as $api_admin_schemas_index from "./routes/api/admin/schemas/index.ts";
 import * as $api_analyzers_index from "./routes/api/analyzers/index.ts";
 import * as $api_analyzers_analyze from "./routes/api/analyzers/analyze.ts";
@@ -27,6 +28,7 @@ const manifest = {
         "./routes/_app.tsx": $_app,
         "./routes/api/admin/schemas/[id].ts": $api_admin_schemas_id_,
         "./routes/api/admin/schemas/[id]/validation-rules.ts": $api_admin_schemas_id_validation_rules,
+        "./routes/api/admin/schemas/[id]/improve-rules.ts": $api_admin_schemas_id_improve_rules,
         "./routes/api/admin/schemas/index.ts": $api_admin_schemas_index,
         "./routes/api/analyzers/index.ts": $api_analyzers_index,
         "./routes/api/analyzers/analyze.ts": $api_analyzers_analyze,

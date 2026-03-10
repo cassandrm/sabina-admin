@@ -3,10 +3,13 @@ Admin router for Document Types/Schemas management
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 import logging
 import os
+import re
 import json
 import yaml
+from typing import Any, Optional
 
 from ..database import get_db
 from .. import security
@@ -17,11 +20,113 @@ from ..models import (
     DocumentTypeUpdate,
     DocumentTypeListResponse
 )
+from ..settings import settings
 
 router = APIRouter(tags=["admin"])
 logger = logging.getLogger(__name__)
 
 CONFIG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config")
+
+
+def _safe_json_loads(s: str):
+    """
+    Robust JSON parser for LLM output that may contain:
+    - Invalid escape sequences (\d, \w, \. from regex patterns)
+    - Surrounding markdown fences or stray text
+    - Truncation (try to extract last complete object)
+    Uses multiple repair strategies before giving up.
+    """
+    # Strategy 1: direct parse
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        pass
+
+    # Strategy 2: fix lone backslashes that are not valid JSON escape characters.
+    # Valid JSON escapes after \: " \ / b f n r t u
+    def _fix_backslashes(text: str) -> str:
+        result = []
+        i = 0
+        in_string = False
+        while i < len(text):
+            c = text[i]
+            if in_string:
+                if c == '\\':
+                    if i + 1 < len(text):
+                        nxt = text[i + 1]
+                        if nxt in '"\\/ bfnrtu':
+                            # Valid escape sequence — keep as-is
+                            result.append(c)
+                            result.append(nxt)
+                            i += 2
+                            continue
+                        else:
+                            # Invalid escape — double the backslash
+                            result.append('\\\\')
+                            i += 1
+                            continue
+                    else:
+                        result.append('\\\\')
+                        i += 1
+                        continue
+                elif c == '"':
+                    in_string = False
+            else:
+                if c == '"':
+                    in_string = True
+            result.append(c)
+            i += 1
+        return ''.join(result)
+
+    fixed = _fix_backslashes(s)
+    try:
+        return json.loads(fixed)
+    except json.JSONDecodeError:
+        pass
+
+    # Strategy 3: bracket-track to extract the outermost complete {...} object,
+    # then apply backslash fix on that. Handles truncated LLM responses.
+    def _extract_json_object(text: str) -> str | None:
+        start = text.find('{')
+        if start < 0:
+            return None
+        depth = 0
+        in_str = False
+        i = start
+        while i < len(text):
+            c = text[i]
+            if in_str:
+                if c == '\\':
+                    i += 2  # skip escaped character
+                    continue
+                if c == '"':
+                    in_str = False
+            else:
+                if c == '"':
+                    in_str = True
+                elif c == '{':
+                    depth += 1
+                elif c == '}':
+                    depth -= 1
+                    if depth == 0:
+                        return text[start:i + 1]
+            i += 1
+        return None
+
+    candidate = _extract_json_object(s)
+    if candidate:
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            pass
+        try:
+            return json.loads(_fix_backslashes(candidate))
+        except json.JSONDecodeError:
+            pass
+
+    # Strategy 4: original simple regex as last resort
+    fixed2 = re.sub(r'\\(?!["\\\//bfnrtu])', r'\\\\', s)
+    return json.loads(fixed2)
 
 
 @router.get("/schemas", response_model=DocumentTypeListResponse)
@@ -216,7 +321,7 @@ def get_validation_rules_from_file(
             return {"validation_rules": None}
 
         if isinstance(validation_rules_raw, str):
-            validation_rules = json.loads(validation_rules_raw)
+            validation_rules = _safe_json_loads(validation_rules_raw)
         else:
             validation_rules = validation_rules_raw
 
@@ -281,3 +386,125 @@ def save_validation_rules_to_file(
     except Exception as e:
         logger.error(f"Error saving validation rules to file: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Errore nel salvataggio delle validation rules: {str(e)}")
+
+
+# ---------------------------------------------------------------------------
+# AI-assisted rule improvement
+# ---------------------------------------------------------------------------
+
+class ImproveRulesRequest(BaseModel):
+    prompt: str
+    current_rules: Any
+
+
+SYSTEM_PROMPT = """Sei un esperto di schemi di validazione JSON per documenti italiani.
+Ti viene fornito un oggetto JSON che rappresenta le "validation_rules" di uno schema documentale
+e un prompt dell'utente che descrive un problema o un miglioramento da apportare.
+
+Il tuo compito è restituire **solo** l'oggetto JSON aggiornato, senza alcun testo introduttivo,
+senza markdown, senza backtick, senza spiegazioni. La risposta deve iniziare con '{' e terminare con '}'.
+
+REGOLE FONDAMENTALI PER IL JSON:
+- Il JSON deve essere sintatticamente valido e completo.
+- I pattern regex all'interno dei valori JSON devono usare il doppio backslash: \\d \\w \\. \\d+ ecc.
+  Esempio corretto: "pattern": "^[A-Z]{6}\\d{2}" NON "pattern": "^[A-Z]{6}\d{2}"
+- Non troncare mai l'output: il JSON deve essere completo fino alla } finale.
+
+Rispetta la struttura originale delle regole: mantieni le stesse chiavi di primo livello e lo stesso stile.
+Modifica solo ciò che è necessario per risolvere il problema descritto dall'utente.
+"""
+
+
+@router.post("/schemas/{schema_id}/improve-rules")
+async def improve_rules_with_ai(
+    schema_id: int,
+    body: ImproveRulesRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(security.get_current_user)
+):
+    """
+    Use AWS Bedrock to improve the validation rules based on a user prompt.
+    Returns the improved validation_rules JSON.
+    """
+    if not settings.aws_access_key_id or not settings.aws_secret_access_key or not settings.model_id:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AWS Bedrock non configurato. Impostare AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY e MODEL_ID."
+        )
+
+    schema = db.query(DocumentType).filter(DocumentType.id == schema_id).first()
+    if not schema:
+        raise HTTPException(status_code=404, detail=f"Schema con ID {schema_id} non trovato")
+
+    try:
+        import boto3
+    except ImportError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Pacchetto 'boto3' non installato. Aggiungere boto3 alle dipendenze."
+        )
+
+    # Load generation prompt from rules.yaml as reference context
+    generation_prompt_text = ""
+    try:
+        rules_yaml_path = os.path.join(CONFIG_DIR, "rules.yaml")
+        with open(rules_yaml_path, "r", encoding="utf-8") as f:
+            rules_config = yaml.safe_load(f)
+        raw_gen_prompt = rules_config.get("generation_prompt", "")
+        # Strip the {schema_str} section — not relevant when improving existing rules
+        if raw_gen_prompt:
+            lines = raw_gen_prompt.splitlines()
+            filtered = [l for l in lines if "{schema_str}" not in l]
+            generation_prompt_text = "\n".join(filtered).strip()
+    except Exception as e:
+        logger.warning(f"Could not load rules.yaml generation prompt: {e}")
+
+    current_rules_json = json.dumps(body.current_rules, indent=2, ensure_ascii=False)
+
+    reference_section = (
+        f"\n\nPROMPT DI RIFERIMENTO USATO PER LA GENERAZIONE INIZIALE DELLE REGOLE:\n"
+        f"(Usa questo come guida per mantenere struttura, convenzioni e vincoli attesi)\n"
+        f"---\n{generation_prompt_text}\n---"
+        if generation_prompt_text else ""
+    )
+
+    user_message = (
+        f"Schema documento: {schema.name or schema.analyzer_id}\n\n"
+        f"Regole di validazione attuali:\n{current_rules_json}"
+        f"{reference_section}\n\n"
+        f"Problema / miglioramento richiesto:\n{body.prompt}"
+    )
+
+    try:
+        client = boto3.client(
+            "bedrock-runtime",
+            region_name=settings.aws_region,
+            aws_access_key_id=settings.aws_access_key_id,
+            aws_secret_access_key=settings.aws_secret_access_key,
+        )
+        response = client.converse(
+            modelId=settings.model_id,
+            system=[{"text": SYSTEM_PROMPT}],
+            messages=[{"role": "user", "content": [{"text": user_message}]}],
+            inferenceConfig={"temperature": 0.2, "maxTokens": 16000},
+        )
+        raw = response["output"]["message"]["content"][0]["text"]
+        # Strip potential markdown fences
+        raw = raw.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw.rstrip())
+            raw = raw.strip()
+
+        improved_rules = _safe_json_loads(raw)
+        logger.info(f"AI improved rules for schema {schema_id}")
+        return {"improved_rules": improved_rules}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error calling AWS Bedrock for schema {schema_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore nella chiamata ad AWS Bedrock: {str(e)}"
+        )

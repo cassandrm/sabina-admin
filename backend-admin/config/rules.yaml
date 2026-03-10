@@ -1,0 +1,105 @@
+# Prompt per la generazione automatica delle regole di validazione tramite AI.
+# Questo file viene letto dal backend quando si richiede la generazione delle validation_rules
+# a partire dallo schema JSON di un documento amministrativo.
+
+generation_prompt: |
+  Analizza il seguente schema JSON di un documento amministrativo e genera le REGOLE DI VALIDAZIONE complete.
+
+  SCHEMA JSON:
+  {schema_str}
+
+  CONTESTO:
+  Questo è lo schema di un documento amministrativo (manifestazione di interesse, dichiarazione sostitutiva, certificato CCIAA, etc.).
+  Devi creare regole di validazione che verifichino la correttezza e completezza dei dati estratti da documenti di questo tipo.
+  Costruisci gli enum basandoti sui valori possibili contenuti in "description" dei campi dello schema, se presenti. Se non ci sono valori predefiniti, non creare enum.
+
+  STRUTTURA DELLA RISPOSTA:
+  Genera un JSON con la seguente struttura esatta:
+  {
+    "rules": [
+      {
+        "field": "percorso.campo",
+        "label_field": "Etichetta Campo",
+        "required": true/false,
+        "requiredMessage": "Messaggio se campo obbligatorio mancante",
+        "pattern": "regex_pattern",
+        "formatMessage": "Messaggio se formato non valido",
+        "enum": ["valore1", "valore2"],
+        "minLength": numero,
+        "maxLength": numero,
+        "requiredIf": {
+          "field": "altro.campo",
+          "operator": "==",
+          "value": "valore"
+        },
+        "displayOnlyIf": {
+          "field": "altro.campo",
+          "operator": "==",
+          "value": "valore"
+        }
+      }
+    ],
+    "crossFieldRules": [
+      {
+        "condition": {
+          "anyOf": ["campo1", "campo2"],
+          "allOf": ["campo3", "campo4"],
+          "mutuallyExclusive": ["campo5", "campo6"]
+        },
+        "message": "Messaggio di validazione cross-field",
+        "ignoreEmptyAndPlaceholders": true,
+        "checkValue": "SI",
+        "rules": ["Regola testuale 1", "Regola testuale 2"]
+      }
+    ]
+  }
+
+  REGOLE PER FIELD RULES:
+  1. Crea una regola per OGNI campo nello schema (usa notazione dot per campi annidati: "azienda.codice_fiscale")
+  2. Identifica i campi OBBLIGATORI (dati anagrafici, identificativi, firme, etc.)
+  3. Applica pattern di validazione per:
+     - Date: "^\\d{2}/\\d{2}/\\d{4}$" (formato DD/MM/YYYY)
+     - Codici fiscali: "^[a-zA-Z0-9]{11,16}$"
+     - Partite IVA: 11 caratteri numerici
+     - CAP: "^\\d{5}$"
+     - Email: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+     - Telefono: "^[\\+]?[\\d\\s]{6,20}$"
+
+  4. Usa enum per campi con valori predefiniti (es: qualifiche, tipologie, ruoli)
+  5. Usa requiredIf per campi condizionali (es: "estremi_procura" richiesto se qualifica è "Procuratore")
+  6. Usa displayOnlyIf per campi che appaiono solo in certi contesti
+  7. Usa minLength/maxLength per campi con lunghezza specifica
+
+  REGOLE PER CROSS-FIELD RULES:
+  1. anyOf: almeno uno dei campi deve essere presente (es: email O PEC)
+  2. allOf: tutti i campi devono essere presenti insieme (es: indirizzo completo)
+  3. mutuallyExclusive: solo uno dei campi può essere valorizzato (es: modalità di partecipazione)
+  4. Aggiungi ignoreEmptyAndPlaceholders: true per ignorare placeholder
+  5. Usa checkValue per verificare valori specifici (es: "SI" per checkbox)
+  6. Aggiungi array "rules" con descrizioni testuali delle regole
+
+  ESEMPI DI REGOLE COMUNI:
+
+  Per dati anagrafici:
+  - nome_cognome: required, pattern per formato nome
+  - data_nascita: required, pattern DD/MM/YYYY
+  - codice_fiscale: required, pattern alfanumerico 11-16 caratteri
+
+  Per qualifiche con enum:
+  - qualifica: required, enum: ["Procuratore", "Amministratore delegato", "Presidente del CdA", ...]
+  - estremi_procura: requiredIf qualifica == "Procuratore"
+
+  Per contatti:
+  - email: pattern email, requiredIfNot: pec
+  - pec: pattern email, requiredIfNot: email
+  - crossFieldRule: anyOf email o PEC
+
+  Per modalità partecipazione mutuamente esclusive:
+  - crossFieldRule: mutuallyExclusive tra impresa_singola.selezionato, rti.selezionato, consorzio.selezionato
+
+  IMPORTANTE:
+  - Genera regole COMPLETE e DETTAGLIATE per ogni campo dello schema
+  - Non omettere campi, anche se sembrano secondari
+  - Usa label_field descrittivi e messaggi di errore chiari in italiano
+  - I pattern regex devono usare doppio escape (\\d invece di \d)
+  - Restituisci SOLO il JSON delle regole, senza testo aggiuntivo o formattazione markdown

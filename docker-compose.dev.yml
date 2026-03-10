@@ -13,13 +13,17 @@ services:
     ports:
       - "8002:8002"
     environment:
-      - SQLALCHEMY_DATABASE_URL=mysql+pymysql://posteitaliane:password@sabina-database:3306/sabina
+      - SQLALCHEMY_DATABASE_URL=${SQLALCHEMY_DATABASE_URL:-}
       - API_KEY=development-test-key
       - JWT_SECRET_KEY=your-jwt-secret-key
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
       - CONFIG_YAML_DIR=/usr/src/app/config/
       - AZURE_CONTENT_UNDERSTANDING_ENDPOINT=${CU_ENDPOINT}
       - AZURE_CONTENT_UNDERSTANDING_KEY=${CU_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-eu-central-1}
+      - MODEL_ID=${MODEL_ID:-}
     volumes:
       - ./backend-admin/src:/usr/src/app/src
       - ./backend-admin/config:/usr/src/app/config

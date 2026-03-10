@@ -166,7 +166,7 @@ class ValidationBaseService(ABC):
                 msg = rule.get('requiredMessage',
                                f"Il campo '{rule.get('label_field', field)}' è obbligatorio.")
                 if msg not in seen_errors:
-                    errors.append(msg)
+                    errors.append({'field': f"{array_path}[{idx}].{item_field_path}", 'label_field': rule.get('label_field', field), 'value': value, 'rule_description': msg, 'failed_check': 'required'})
                     seen_errors.add(msg)
                 field_valid = False
 
@@ -176,7 +176,7 @@ class ValidationBaseService(ABC):
                     msg = rule.get('formatMessage',
                                    f"Il campo '{field}' non rispetta il formato richiesto.")
                     if msg not in seen_errors:
-                        errors.append(msg)
+                        errors.append({'field': f"{array_path}[{idx}].{item_field_path}", 'label_field': rule.get('label_field', field), 'value': value, 'rule_description': msg, 'failed_check': 'pattern'})
                         seen_errors.add(msg)
                     field_valid = False
 
@@ -186,7 +186,7 @@ class ValidationBaseService(ABC):
                     msg = rule.get('formatMessage',
                                    f"Il campo '{field}' deve essere uno dei valori consentiti.")
                     if msg not in seen_errors:
-                        errors.append(msg)
+                        errors.append({'field': f"{array_path}[{idx}].{item_field_path}", 'label_field': rule.get('label_field', field), 'value': value, 'rule_description': msg, 'failed_check': 'enum'})
                         seen_errors.add(msg)
                     field_valid = False
 
@@ -194,7 +194,7 @@ class ValidationBaseService(ABC):
             if value and rule.get('minLength') and len(str(value)) < rule['minLength']:
                 msg = rule.get('formatMessage', f"Il campo '{field}' è troppo corto.")
                 if msg not in seen_errors:
-                    errors.append(msg)
+                    errors.append({'field': f"{array_path}[{idx}].{item_field_path}", 'label_field': rule.get('label_field', field), 'value': value, 'rule_description': msg, 'failed_check': 'minLength'})
                     seen_errors.add(msg)
                 field_valid = False
 
@@ -202,7 +202,7 @@ class ValidationBaseService(ABC):
             if value and rule.get('maxLength') and len(str(value)) > rule['maxLength']:
                 msg = rule.get('formatMessage', f"Il campo '{field}' è troppo lungo.")
                 if msg not in seen_errors:
-                    errors.append(msg)
+                    errors.append({'field': f"{array_path}[{idx}].{item_field_path}", 'label_field': rule.get('label_field', field), 'value': value, 'rule_description': msg, 'failed_check': 'maxLength'})
                     seen_errors.add(msg)
                 field_valid = False
 
@@ -280,9 +280,11 @@ class ValidationBaseService(ABC):
 
             # Campo obbligatorio fisso
             if rule.get('required') and not value:
-                field_errors.append(
-                    rule.get('requiredMessage', f"Il campo '{rule.get('label_field', field)}' è obbligatorio.")
-                )
+                field_errors.append({
+                    'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                    'rule_description': rule.get('requiredMessage', f"Il campo '{rule.get('label_field', field)}' è obbligatorio."),
+                    'failed_check': 'required'
+                })
                 field_valid = False
 
             # RequiredIf semplice
@@ -290,9 +292,11 @@ class ValidationBaseService(ABC):
                 if isinstance(rule['requiredIf'], str):
                     dep_value = self._valida_campo_nested(data, rule['requiredIf'])
                     if dep_value and not value:
-                        field_errors.append(
-                            rule.get('requiredMessage', f"Il campo '{field}' è richiesto.")
-                        )
+                        field_errors.append({
+                            'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                            'rule_description': rule.get('requiredMessage', f"Il campo '{field}' è richiesto."),
+                            'failed_check': 'requiredIf'
+                        })
                         field_valid = False
                 # RequiredIf con condizione complessa
                 elif isinstance(rule['requiredIf'], dict):
@@ -324,9 +328,11 @@ class ValidationBaseService(ABC):
                             condition_met = True
 
                     if condition_met and not value:
-                        field_errors.append(
-                            rule.get('requiredMessage', f"Il campo '{field}' è richiesto.")
-                        )
+                        field_errors.append({
+                            'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                            'rule_description': rule.get('requiredMessage', f"Il campo '{field}' è richiesto."),
+                            'failed_check': 'requiredIf'
+                        })
                         field_valid = False
 
             # RequiredIfNot (almeno uno dei due non è vuoto)
@@ -334,55 +340,62 @@ class ValidationBaseService(ABC):
                 other_field = rule['requiredIfNot']
                 other_value = self._valida_campo_nested(data, other_field)
                 if not value and not other_value:
-                    field_errors.append(
-                        rule.get('requiredMessage', f"Il campo '{field}' è richiesto.")
-                    )
+                    field_errors.append({
+                        'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                        'rule_description': rule.get('requiredMessage', f"Il campo '{field}' è richiesto."),
+                        'failed_check': 'requiredIfNot'
+                    })
                     field_valid = False
 
             # Pattern
             if value and rule.get('pattern'):
                 if not re.match(rule['pattern'], str(value), re.IGNORECASE):
-                    field_errors.append(
-                        rule.get('formatMessage', f"Il campo '{field}' non rispetta il formato richiesto.")
-                    )
+                    field_errors.append({
+                        'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                        'rule_description': rule.get('formatMessage', f"Il campo '{field}' non rispetta il formato richiesto."),
+                        'failed_check': 'pattern'
+                    })
                     field_valid = False
 
             # Enum
             if value and rule.get('enum'):
                 if not self._enum_value_allowed(value, rule['enum']):
-                    field_errors.append(
-                        rule.get('formatMessage', f"Il campo '{field}' deve essere uno dei valori consentiti.")
-                    )
+                    field_errors.append({
+                        'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                        'rule_description': rule.get('formatMessage', f"Il campo '{field}' deve essere uno dei valori consentiti."),
+                        'failed_check': 'enum'
+                    })
                     field_valid = False
 
             # Min/Max length
             if value and rule.get('minLength') and len(str(value)) < rule['minLength']:
-                field_errors.append(
-                    rule.get('formatMessage', f"Il campo '{field}' è troppo corto.")
-                )
+                field_errors.append({
+                    'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                    'rule_description': rule.get('formatMessage', f"Il campo '{field}' è troppo corto."),
+                    'failed_check': 'minLength'
+                })
                 field_valid = False
             if value and rule.get('maxLength') and len(str(value)) > rule['maxLength']:
-                field_errors.append(
-                    rule.get('formatMessage', f"Il campo '{field}' è troppo lungo.")
-                )
+                field_errors.append({
+                    'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                    'rule_description': rule.get('formatMessage', f"Il campo '{field}' è troppo lungo."),
+                    'failed_check': 'maxLength'
+                })
                 field_valid = False
 
             # MinSelected (solo per array)
             if rule.get('minSelected') and isinstance(value, list):
                 selected = sum(1 for item in value if item.get('selezionato', False))
                 if selected < rule['minSelected']:
-                    field_errors.append(
-                        rule.get('requiredMessage', f"Il campo '{field}' richiede almeno {rule['minSelected']} selezioni.")
-                    )
+                    field_errors.append({
+                        'field': field, 'label_field': rule.get('label_field', field), 'value': value,
+                        'rule_description': rule.get('requiredMessage', f"Il campo '{field}' richiede almeno {rule['minSelected']} selezioni."),
+                        'failed_check': 'minSelected'
+                    })
                     field_valid = False
 
             # Prepara errori già decodificati per l'esterno
-            decoded_field_errors = []
-            for fe in field_errors:
-                if isinstance(fe, str):
-                    decoded_field_errors.append(self._fix_encoding(fe))
-                else:
-                    decoded_field_errors.append(fe)
+            decoded_field_errors = [self._fix_encoding(fe) for fe in field_errors]
 
             errors.extend(decoded_field_errors)
 
@@ -406,14 +419,14 @@ class ValidationBaseService(ABC):
             if 'anyOf' in condition:
                 fields = condition['anyOf']
                 if not any(self._valida_campo_nested(data, f) for f in fields):
-                    errors.append(cross_rule.get('message', 'Errore di validazione cross-field.'))
+                    errors.append({'field': None, 'label_field': None, 'value': None, 'rule_description': cross_rule.get('message', 'Errore di validazione cross-field.'), 'failed_check': 'cross_field'})
 
             if 'allOf' in condition:
                 fields = condition['allOf']
                 first_filled = self._valida_campo_nested(data, fields[0])
                 if first_filled:
                     if not all(self._valida_campo_nested(data, f) for f in fields):
-                        errors.append(cross_rule.get('message', 'Errore di validazione cross-field.'))
+                        errors.append({'field': None, 'label_field': None, 'value': None, 'rule_description': cross_rule.get('message', 'Errore di validazione cross-field.'), 'failed_check': 'cross_field'})
 
             if 'mutuallyExclusive' in condition:
                 sections = condition['mutuallyExclusive']
@@ -425,13 +438,10 @@ class ValidationBaseService(ABC):
                     logger.warning(
                         f"Rilevate {active_count} sezioni mutuamente esclusive attive: {', '.join(section_names)}"
                     )
-                    errors.append(cross_rule.get('message', 'Errore di mutua esclusività.'))
+                    errors.append({'field': None, 'label_field': None, 'value': None, 'rule_description': cross_rule.get('message', 'Errore di mutua esclusività.'), 'failed_check': 'cross_field'})
                 elif active_count == 0:
                     logger.warning("Nessuna modalità di partecipazione selezionata.")
-                    errors.append(
-                        "Deve essere selezionata almeno una modalità di partecipazione "
-                        "(Impresa Singola, RTI/RTP, Consorzio oppure Altro)."
-                    )
+                    errors.append({'field': None, 'label_field': None, 'value': None, 'rule_description': "Deve essere selezionata almeno una modalità di partecipazione (Impresa Singola, RTI/RTP, Consorzio oppure Altro).", 'failed_check': 'cross_field'})
 
         # Ritorna già con valori/label già decodificati e puliti
         decoded_valid_fields = valid_fields

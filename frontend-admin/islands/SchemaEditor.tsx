@@ -19,6 +19,13 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
     const [error, setError] = useState<string | null>(null);
     const [validationError, setValidationError] = useState<string | null>(null);
 
+    // AI improve rules
+    const [improveModalOpen, setImproveModalOpen] = useState(false);
+    const [improvePrompt, setImprovePrompt] = useState("");
+    const [improvingRules, setImprovingRules] = useState(false);
+    const [improveError, setImproveError] = useState<string | null>(null);
+    const [saveNotification, setSaveNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
     // Load validation_rules from YAML config file on mount
     useEffect(() => {
         if (!schema.id) {
@@ -94,12 +101,40 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
         );
     };
 
-    // Row for a plain error message string
-    const ErrorRow = ({ message }: { message: string }) => (
-        <div style={{ padding: "0.5rem 0.75rem", marginBottom: "0.35rem", borderRadius: "6px", background: "#fff5f5", border: "1px solid #f5c6cb", fontSize: "0.82rem", color: "#7b2d2d" }}>
-            ⚠ {message}
-        </div>
-    );
+    // Row for a structured error dict { field, label_field, value, rule_description, failed_check }
+    // or a plain string (cross-field / legacy)
+    const ErrorRow = ({ item }: { item: Record<string, unknown> | string }) => {
+        if (typeof item === "string") {
+            return (
+                <div style={{ padding: "0.5rem 0.75rem", marginBottom: "0.35rem", borderRadius: "6px", background: "#fff5f5", border: "1px solid #f5c6cb", fontSize: "0.82rem", color: "#7b2d2d" }}>
+                    ⚠ {fixEncoding(item)}
+                </div>
+            );
+        }
+        const label = item.label_field ? fixEncoding(String(item.label_field)) : (item.field ? fixEncoding(String(item.field)) : null);
+        const fieldPath = item.field ? fixEncoding(String(item.field)) : null;
+        const value = (item.value !== undefined && item.value !== null && item.value !== "") ? String(item.value) : null;
+        const desc = item.rule_description ? fixEncoding(String(item.rule_description)) : null;
+        const checkLabels: Record<string, string> = {
+            required: "obbligatorio", requiredIf: "obbligatorio (condizionale)", requiredIfNot: "obbligatorio (alternativo)",
+            pattern: "formato non valido", enum: "valore non consentito", minLength: "troppo corto",
+            maxLength: "troppo lungo", minSelected: "selezione insufficiente", cross_field: "regola trasversale"
+        };
+        const checkBadge = item.failed_check ? (checkLabels[String(item.failed_check)] ?? String(item.failed_check)) : null;
+        return (
+            <div style={{ padding: "0.5rem 0.75rem", marginBottom: "0.35rem", borderRadius: "6px", background: "#fff5f5", border: "1px solid #f5c6cb", fontSize: "0.82rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                    <span style={{ fontWeight: 600, color: "#c0392b", flex: 1 }}>{label ?? "⚠ Errore"}</span>
+                    {value && <span style={{ fontFamily: "monospace", color: "#555", background: "#fddede", padding: "1px 7px", borderRadius: "4px", whiteSpace: "nowrap", maxWidth: "45%", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</span>}
+                </div>
+                {desc && <div style={{ marginTop: "0.25rem", color: "#7b2d2d", fontStyle: "italic" }}>⚠ {desc}</div>}
+                <div style={{ marginTop: "0.2rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    {fieldPath && <span style={{ color: "#888", fontSize: "0.73rem" }}>{fieldPath}</span>}
+                    {checkBadge && <span style={{ fontSize: "0.68rem", background: "#f5c6cb", color: "#721c24", borderRadius: "3px", padding: "0 5px", fontWeight: 600 }}>{checkBadge}</span>}
+                </div>
+            </div>
+        );
+    };
 
     // Formatted validation result display
     const ValidationResultDisplay = ({ resultJson }: { resultJson: string }) => {
@@ -116,17 +151,13 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
             <div style={{ display: "flex", flexDirection: "column", gap: "0", overflowY: "auto", flex: 1 }}>
                 {/* Summary badge */}
                 <div style={{ padding: "0.5rem 0.75rem", marginBottom: "0.6rem", borderRadius: "6px", background: isValid ? "#d4edda" : "#f8d7da", border: `1px solid ${isValid ? "#c3e6cb" : "#f5c6cb"}`, fontWeight: 700, fontSize: "0.9rem", color: isValid ? "#155724" : "#721c24", textAlign: "center" }}>
-                    {isValid ? "✅ Validazione superata" : `❌ Validazione fallita — ${errors.length} error${errors.length === 1 ? "e" : "i"}, ${valids.length} campo${valids.length === 1 ? "" : "i"} valido${valids.length === 1 ? "" : "i"}`}
+                    {isValid ? "✅ Validazione superata" : `❌ Validazione fallita — ${errors.length} ${errors.length === 1 ? "errore" : "errori"}, ${valids.length} ${valids.length === 1 ? "campo valido" : "campi validi"}`}
                 </div>
                 {/* Errors first */}
                 {errors.length > 0 && (
                     <div style={{ marginBottom: "0.6rem" }}>
                         <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#c0392b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.3rem" }}>Campi con errori ({errors.length})</div>
-                        {errors.map((item, i) =>
-                            typeof item === "string"
-                                ? <ErrorRow key={i} message={fixEncoding(item)} />
-                                : <ErrorRow key={i} message={fixEncoding(String((item as Record<string,unknown>).rule_description ?? (item as Record<string,unknown>).label_field ?? JSON.stringify(item)))} />
-                        )}
+                        {errors.map((item, i) => <ErrorRow key={i} item={item as Record<string, unknown> | string} />)}
                     </div>
                 )}
                 {/* Valid fields */}
@@ -216,11 +247,9 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                 setModal({ message: errorData.detail || 'Errore nel salvataggio', onClose: () => setModal(null) });
                 throw new Error(errorData.detail || "Errore nel salvataggio");
             }
-            setModal({ message: 'Salvataggio completato con successo!' });
-            setTimeout(() => {
-                setModal(null);
-                onUpdated();
-            }, 2000);
+            setModal(null);
+            setSaveNotification({ type: 'success', message: '✅ Salvataggio su YAML completato con successo.' });
+            setTimeout(() => setSaveNotification(null), 5000);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Errore sconosciuto");
         } finally {
@@ -259,11 +288,9 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                 setModal({ message: errorData.detail || 'Errore nel salvataggio su DB', onClose: () => setModal(null) });
                 throw new Error(errorData.detail || "Errore nel salvataggio su DB");
             }
-            setModal({ message: 'Salvataggio su DB completato con successo!' });
-            setTimeout(() => {
-                setModal(null);
-                onUpdated();
-            }, 2000);
+            setModal(null);
+            setSaveNotification({ type: 'success', message: '✅ Salvataggio su DB completato con successo.' });
+            setTimeout(() => setSaveNotification(null), 5000);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Errore sconosciuto");
         } finally {
@@ -383,6 +410,42 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
         }
     };
 
+    const handleImproveRules = async () => {
+        if (!improvePrompt.trim() || !schema.id) return;
+        let currentRules;
+        try {
+            currentRules = JSON.parse(validationRules);
+        } catch {
+            setImproveError("Le Validation Rules non sono un JSON valido. Correggile prima di usare l'AI.");
+            return;
+        }
+        setImprovingRules(true);
+        setImproveError(null);
+        try {
+            const response = await fetch(`/api/admin/schemas/${schema.id}/improve-rules`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                },
+                body: JSON.stringify({ prompt: improvePrompt, current_rules: currentRules }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                setImproveError(data.detail || "Errore nella chiamata AI");
+                return;
+            }
+            setValidationRules(JSON.stringify(data.improved_rules, null, 2));
+            setImproveModalOpen(false);
+            setImprovePrompt("");
+            setImproveError(null);
+        } catch (err) {
+            setImproveError(err instanceof Error ? err.message : "Errore sconosciuto");
+        } finally {
+            setImprovingRules(false);
+        }
+    };
+
     return (
         <div style={{ border: '2px solid #007bff', borderRadius: '8px', padding: '1.5rem', backgroundColor: '#f8f9fa', margin: 0, maxWidth: '1700px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'stretch', width: '100%' }}>
             <input
@@ -417,11 +480,17 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                         onClick={onClose}
                         style={{ padding: '0.45rem 1.1rem', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 'bold' }}
                     >
-                        Annulla
+                        Indietro
                     </button>
                 </div>
             </div>
 
+            {saveNotification && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.9rem', background: saveNotification.type === 'success' ? '#d4edda' : '#f8d7da', border: `1px solid ${saveNotification.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`, borderRadius: '4px', marginBottom: '0.5rem', color: saveNotification.type === 'success' ? '#155724' : '#721c24', fontWeight: 600 }}>
+                    <span>{saveNotification.message}</span>
+                    <button onClick={() => setSaveNotification(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: 'inherit', lineHeight: 1 }}>×</button>
+                </div>
+            )}
             {error && (
                 <div style={{ color: '#dc3545', padding: '0.5rem', background: '#f8d7da', borderRadius: '4px', marginBottom: '0.5rem' }}>
                     {error}
@@ -453,7 +522,17 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
 
                     {/* LEFT: Validation Rules */}
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                        <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "bold" }}>Validation Rules (da file YAML):</label>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                            <label style={{ fontWeight: "bold" }}>Validation Rules (da file YAML):</label>
+                            <button
+                                onClick={() => { setImproveModalOpen(true); setImproveError(null); }}
+                                disabled={loadingRules || !validationRules.trim()}
+                                title="Migliora le Validation Rules con l'AI"
+                                style={{ padding: "0.3rem 0.8rem", background: "#6f42c1", color: "#fff", border: "none", borderRadius: "4px", cursor: (loadingRules || !validationRules.trim()) ? "not-allowed" : "pointer", fontSize: "0.85rem", fontWeight: "bold", opacity: (loadingRules || !validationRules.trim()) ? 0.55 : 1 }}
+                            >
+                                🤖 AI Migliora Regole
+                            </button>
+                        </div>
                         {validationError && (
                             <div style={{ color: '#dc3545', marginBottom: '0.5rem' }}>{validationError}</div>
                         )}
@@ -583,6 +662,58 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
             </div>
 
             {modal && <Modal message={modal.message} spinner={modal.spinner} onClose={modal.onClose} />}
+
+            {/* AI Improve Rules Modal */}
+            {improveModalOpen && (
+                <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.35)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ background: "#fff", borderRadius: "12px", boxShadow: "0 4px 24px rgba(0,0,0,0.22)", padding: "2rem", minWidth: "480px", maxWidth: "90vw", width: "560px", display: "flex", flexDirection: "column", gap: "1rem", position: "relative", overflow: "hidden" }}>
+
+                        {/* Spinner overlay durante l'elaborazione */}
+                        {improvingRules && (
+                            <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.88)", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem", borderRadius: "12px" }}>
+                                <div style={{ width: "48px", height: "48px", border: "5px solid #e0d4f7", borderTop: "5px solid #6f42c1", borderRadius: "50%", animation: "spin 0.9s linear infinite" }} />
+                                <div style={{ color: "#6f42c1", fontWeight: 600, fontSize: "1rem" }}>Elaborazione in corso...</div>
+                                <div style={{ color: "#888", fontSize: "0.82rem" }}>L&apos;AI sta analizzando e migliorando le regole</div>
+                                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                            </div>
+                        )}
+
+                        <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#6f42c1" }}>🤖 Migliora Regole con AI</div>
+                        <div style={{ fontSize: "0.9rem", color: "#555" }}>
+                            Descrivi il problema da correggere o il miglioramento da apportare alle Validation Rules attuali.
+                            L&apos;AI restituirà una versione aggiornata pronta da testare.
+                        </div>
+                        <textarea
+                            value={improvePrompt}
+                            onInput={(e: Event) => setImprovePrompt((e.target as HTMLTextAreaElement).value)}
+                            placeholder="Es: Il campo 'codice_fiscale' non valida correttamente i codici fiscali di 16 caratteri..."
+                            disabled={improvingRules}
+                            style={{ width: "100%", minHeight: "120px", padding: "0.6rem", border: "1px solid #ced4da", borderRadius: "6px", fontFamily: "sans-serif", fontSize: "0.95rem", resize: "vertical", boxSizing: "border-box" }}
+                        />
+                        {improveError && (
+                            <div style={{ color: "#c0392b", background: "#fdf3f3", border: "1px solid #f5c6cb", borderRadius: "6px", padding: "0.5rem 0.75rem", fontSize: "0.875rem" }}>
+                                {improveError}
+                            </div>
+                        )}
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
+                            <button
+                                onClick={() => { setImproveModalOpen(false); setImprovePrompt(""); setImproveError(null); }}
+                                disabled={improvingRules}
+                                style={{ padding: "0.5rem 1.2rem", background: "#6c757d", color: "#fff", border: "none", borderRadius: "6px", cursor: improvingRules ? "not-allowed" : "pointer", fontWeight: "bold" }}
+                            >
+                                Annulla
+                            </button>
+                            <button
+                                onClick={handleImproveRules}
+                                disabled={improvingRules || !improvePrompt.trim()}
+                                style={{ padding: "0.5rem 1.4rem", background: improvingRules || !improvePrompt.trim() ? "#9b77c7" : "#6f42c1", color: "#fff", border: "none", borderRadius: "6px", cursor: (improvingRules || !improvePrompt.trim()) ? "not-allowed" : "pointer", fontWeight: "bold", minWidth: "120px" }}
+                            >
+                                {improvingRules ? "⏳ Elaborazione..." : "✨ Applica AI"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

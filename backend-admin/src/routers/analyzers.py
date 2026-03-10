@@ -4,6 +4,7 @@ Analyzers router for fetching Azure Content Understanding analyzers
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 import logging
 import os
+import re
 from typing import List, Dict, Any
 
 from .. import security
@@ -13,6 +14,22 @@ from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["Analyzers"])
 logger = logging.getLogger(__name__)
+
+
+def _safe_json_loads(s: str):
+    """
+    Parse a JSON string that may contain invalid escape sequences
+    (e.g. \d, \w, \. from regex patterns written without double-backslash).
+    First tries standard json.loads; on JSONDecodeError caused by invalid escapes
+    it repairs lone backslashes and retries.
+    """
+    import json as _j
+    try:
+        return _j.loads(s)
+    except _j.JSONDecodeError:
+        # Replace \x where x is NOT a valid JSON escape character with \\x
+        fixed = re.sub(r'\\(?!["\\\//bfnrtu])', r'\\\\', s)
+        return _j.loads(fixed)
 
 
 @router.get("/analyzers")
@@ -147,7 +164,7 @@ async def validate_json(
         # validation_rules nel YAML è una stringa JSON, va parsata
         import json as _json
         if isinstance(validation_rules_raw, str):
-            validation_rules = _json.loads(validation_rules_raw)
+            validation_rules = _safe_json_loads(validation_rules_raw)
         else:
             validation_rules = validation_rules_raw
 

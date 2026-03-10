@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     azure_content_understanding_endpoint: Optional[str] = None
     azure_content_understanding_key: Optional[str] = None
 
+    # AWS Bedrock (for AI-assisted rule improvement)
+    aws_access_key_id: Optional[str] = None
+    aws_secret_access_key: Optional[str] = None
+    aws_region: Optional[str] = "eu-central-1"
+    model_id: Optional[str] = None
+
     model_config = {
         'env_file': '.env',
         'env_file_encoding': 'utf-8',
