@@ -1,0 +1,500 @@
+name: dichiarazione_cciaa
+
+label_name : Dichiarazione CCIAA
+
+pattern: ALLEGATO 2.1
+
+analyzer_id: dichiarazione_cciaa
+
+validation_rules: |
+  {
+  "rules": [
+    {
+      "field": "Documento.Titolo",
+      "required": true,
+      "maxLength": 500,
+      "minLength": 5,
+      "label_field": "Titolo del documento",
+      "requiredMessage": "Il titolo del documento è obbligatorio"
+    },
+    {
+      "field": "Documento.Oggetto",
+      "required": true,
+      "maxLength": 1000,
+      "minLength": 10,
+      "label_field": "Oggetto della manifestazione di interesse",
+      "requiredMessage": "L'oggetto della manifestazione di interesse è obbligatorio"
+    },
+    {
+      "field": "Sottoscrittore.NomeCognome",
+      "pattern": "^[A-Za-zÀ-ÿ\\s''-]+\\s+[A-Za-zÀ-ÿ\\s''-]+$",
+      "required": true,
+      "maxLength": 100,
+      "minLength": 3,
+      "label_field": "Nome e cognome del sottoscrittore",
+      "formatMessage": "Il formato del nome e cognome non è valido. Inserire nome e cognome separati da spazio",
+      "requiredMessage": "Il nome e cognome del sottoscrittore sono obbligatori"
+    },
+    {
+      "field": "Sottoscrittore.LuogoNascita",
+      "pattern": "^[A-Za-zÀ-ÿ\\s''-]+$",
+      "required": true,
+      "maxLength": 100,
+      "minLength": 2,
+      "label_field": "Luogo di nascita del sottoscrittore",
+      "formatMessage": "Il luogo di nascita deve contenere solo lettere e spazi",
+      "requiredMessage": "Il luogo di nascita del sottoscrittore è obbligatorio"
+    },
+    {
+      "field": "Sottoscrittore.ProvinciaNascita",
+      "pattern": "^[A-Z]{2}$",
+      "required": true,
+      "maxLength": 2,
+      "minLength": 2,
+      "label_field": "Provincia di nascita del sottoscrittore",
+      "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere maiuscole (es. RM, MI)",
+      "requiredMessage": "La provincia di nascita del sottoscrittore è obbligatoria"
+    },
+    {
+      "field": "Sottoscrittore.DataNascita",
+      "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+      "required": true,
+      "label_field": "Data di nascita del sottoscrittore",
+      "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA",
+      "requiredMessage": "La data di nascita del sottoscrittore è obbligatoria"
+    },
+    {
+      "enum": [
+        "Legale rappresentante",
+        "Amministratore delegato",
+        "Amministratore unico",
+        "Presidente del CdA",
+        "Procuratore",
+        "Procuratore speciale",
+        "Procuratore generale",
+        "Titolare",
+        "Socio amministratore",
+        "Direttore generale",
+        "Institore"
+      ],
+      "field": "Sottoscrittore.Qualifica",
+      "required": true,
+      "label_field": "Qualifica del sottoscrittore",
+      "requiredMessage": "La qualifica del sottoscrittore è obbligatoria"
+    },
+    {
+      "field": "Sottoscrittore.EstremiProcura",
+      "required": false,
+      "maxLength": 500,
+      "minLength": 5,
+      "requiredIf": {
+        "field": "Sottoscrittore.Qualifica",
+        "value": "Procuratore",
+        "operator": "contains"
+      },
+      "label_field": "Estremi della procura",
+      "requiredMessage": "Gli estremi della procura sono obbligatori quando il sottoscrittore agisce come procuratore"
+    },
+    {
+      "field": "Azienda.RagioneSociale",
+      "required": true,
+      "maxLength": 200,
+      "minLength": 2,
+      "label_field": "Ragione sociale dell'azienda",
+      "requiredMessage": "La ragione sociale dell'azienda è obbligatoria"
+    },
+    {
+      "field": "Azienda.CodiceFiscale",
+      "pattern": "^[A-Z0-9]{11,16}$",
+      "required": true,
+      "label_field": "Codice fiscale dell'azienda",
+      "formatMessage": "Il codice fiscale deve contenere da 11 a 16 caratteri alfanumerici",
+      "requiredMessage": "Il codice fiscale dell'azienda è obbligatorio"
+    },
+    {
+      "field": "Azienda.PartitaIva",
+      "pattern": "^\\d{11}$",
+      "required": true,
+      "label_field": "Partita IVA dell'azienda",
+      "formatMessage": "La partita IVA deve contenere esattamente 11 cifre numeriche",
+      "requiredMessage": "La partita IVA dell'azienda è obbligatoria"
+    },
+    {
+      "field": "Azienda.PartitaIvaGruppo",
+      "pattern": "^\\d{11}$",
+      "required": false,
+      "label_field": "Partita IVA del gruppo",
+      "formatMessage": "La partita IVA del gruppo deve contenere esattamente 11 cifre numeriche"
+    },
+    {
+      "field": "Azienda.SedeLegale.Indirizzo",
+      "required": true,
+      "maxLength": 200,
+      "minLength": 5,
+      "label_field": "Indirizzo della sede legale",
+      "requiredMessage": "L'indirizzo della sede legale è obbligatorio"
+    },
+    {
+      "field": "Azienda.SedeLegale.Citta",
+      "pattern": "^[A-Za-zÀ-ÿ\\s''-]+$",
+      "required": true,
+      "maxLength": 100,
+      "minLength": 2,
+      "label_field": "Città della sede legale",
+      "formatMessage": "La città deve contenere solo lettere e spazi",
+      "requiredMessage": "La città della sede legale è obbligatoria"
+    },
+    {
+      "field": "Azienda.SedeLegale.Provincia",
+      "pattern": "^[A-Z]{2}$",
+      "required": true,
+      "label_field": "Provincia della sede legale",
+      "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere maiuscole (es. RM, MI)",
+      "requiredMessage": "La provincia della sede legale è obbligatoria"
+    },
+    {
+      "field": "Azienda.SedeLegale.CAP",
+      "pattern": "^\\d{5}$",
+      "required": true,
+      "label_field": "CAP della sede legale",
+      "formatMessage": "Il CAP deve contenere esattamente 5 cifre numeriche",
+      "requiredMessage": "Il CAP della sede legale è obbligatorio"
+    },
+    {
+      "field": "Azienda.Contatti.Telefono",
+      "pattern": "^[\\d\\s\\+\\-\\/\\.]{6,20}$",
+      "required": false,
+      "label_field": "Telefono dell'azienda",
+      "formatMessage": "Il numero di telefono deve contenere da 6 a 20 caratteri tra cifre, spazi e simboli (+, -, /, .)"
+    },
+    {
+      "field": "Azienda.Contatti.Email",
+      "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
+      "required": false,
+      "label_field": "Email dell'azienda",
+      "formatMessage": "L'indirizzo email non è in un formato valido"
+    },
+    {
+      "field": "Azienda.Contatti.PEC",
+      "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
+      "required": true,
+      "label_field": "PEC dell'azienda",
+      "formatMessage": "L'indirizzo PEC non è in un formato valido",
+      "requiredMessage": "L'indirizzo PEC dell'azienda è obbligatorio"
+    },
+    {
+      "enum": [
+        "SI",
+        ""
+      ],
+      "field": "ManifestazioneInteresse.Lotti.Lotto1",
+      "required": false,
+      "label_field": "Lotto 1",
+      "formatMessage": "Il valore per il Lotto 1 deve essere 'SI' o vuoto"
+    },
+    {
+      "enum": [
+        "SI",
+        ""
+      ],
+      "field": "ManifestazioneInteresse.Lotti.Lotto2",
+      "required": false,
+      "label_field": "Lotto 2",
+      "formatMessage": "Il valore per il Lotto 2 deve essere 'SI' o vuoto"
+    },
+    {
+      "enum": [
+        "SI",
+        ""
+      ],
+      "field": "ManifestazioneInteresse.Lotti.Lotto3",
+      "required": false,
+      "label_field": "Lotto 3",
+      "formatMessage": "Il valore per il Lotto 3 deve essere 'SI' o vuoto"
+    },
+    {
+      "enum": [
+        "SI",
+        ""
+      ],
+      "field": "ManifestazioneInteresse.Lotti.Lotto4",
+      "required": false,
+      "label_field": "Lotto 4",
+      "formatMessage": "Il valore per il Lotto 4 deve essere 'SI' o vuoto"
+    },
+    {
+      "enum": [
+        "Microimpresa",
+        "Piccola impresa",
+        "Media impresa",
+        "Grande impresa",
+        "Libero professionista",
+        "Studio associato"
+      ],
+      "field": "ManifestazioneInteresse.ModalitaPartecipazione.ImpresaSingola.Tipologia",
+      "required": false,
+      "label_field": "Tipologia impresa singola",
+      "formatMessage": "La tipologia di impresa singola non è tra i valori ammessi"
+    },
+    {
+      "enum": [
+        "RTI Costituito",
+        "RTI Costituendo",
+        "RTP Costituito",
+        "RTP Costituendo"
+      ],
+      "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
+      "required": false,
+      "label_field": "Tipologia RTI/RTP",
+      "formatMessage": "La tipologia di raggruppamento temporaneo deve essere: RTI Costituito, RTI Costituendo, RTP Costituito o RTP Costituendo"
+    },
+    {
+      "enum": [
+        "Mandataria",
+        "Mandante"
+      ],
+      "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.Ruolo",
+      "required": false,
+      "requiredIf": {
+        "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
+        "value": "",
+        "operator": "!="
+      },
+      "label_field": "Ruolo nel raggruppamento temporaneo",
+      "formatMessage": "Il ruolo nel raggruppamento deve essere 'Mandataria' o 'Mandante'",
+      "requiredMessage": "Il ruolo nel raggruppamento temporaneo è obbligatorio quando si partecipa in RTI/RTP"
+    },
+    {
+      "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.RagioneSocialeMandataria",
+      "required": false,
+      "maxLength": 200,
+      "minLength": 2,
+      "requiredIf": {
+        "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
+        "value": "",
+        "operator": "!="
+      },
+      "label_field": "Ragione sociale Mandataria/Mandante",
+      "requiredMessage": "La ragione sociale della Mandataria/Mandante è obbligatoria quando si partecipa in RTI/RTP"
+    },
+    {
+      "enum": [
+        "Consorzio Stabile",
+        "Consorzio Ordinario Costituito",
+        "Consorzio Ordinario Costituendo",
+        "Consorzio di Cooperative di produzione e lavoro"
+      ],
+      "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
+      "required": false,
+      "label_field": "Tipologia di consorzio",
+      "formatMessage": "La tipologia di consorzio non è tra i valori ammessi"
+    },
+    {
+      "enum": [
+        "Consorzio",
+        "Consorziata esecutrice"
+      ],
+      "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.Ruolo",
+      "required": false,
+      "requiredIf": {
+        "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
+        "value": "",
+        "operator": "!="
+      },
+      "label_field": "Ruolo nel consorzio",
+      "formatMessage": "Il ruolo nel consorzio deve essere 'Consorzio' o 'Consorziata esecutrice'",
+      "requiredMessage": "Il ruolo nel consorzio è obbligatorio quando si partecipa tramite consorzio"
+    },
+    {
+      "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.RagioneSocialeConsorzio",
+      "required": false,
+      "maxLength": 200,
+      "minLength": 2,
+      "requiredIf": {
+        "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.Ruolo",
+        "value": "Consorziata esecutrice",
+        "operator": "=="
+      },
+      "label_field": "Ragione sociale del consorzio",
+      "requiredMessage": "La ragione sociale del consorzio è obbligatoria quando si partecipa come consorziata esecutrice"
+    },
+    {
+      "field": "ManifestazioneInteresse.ModalitaPartecipazione.Altro.Specificare",
+      "required": false,
+      "maxLength": 500,
+      "minLength": 5,
+      "label_field": "Altra modalità di partecipazione"
+    },
+    {
+      "field": "Firma.LuogoEData",
+      "pattern": "^[A-Za-zÀ-ÿ\\s''-]+,?\\s*\\d{1,2}[/\\-\\.]\\d{1,2}[/\\-\\.]\\d{2,4}$|^[A-Za-zÀ-ÿ\\s''-]+,?\\s*\\d{1,2}\\s+[A-Za-zÀ-ÿ]+\\s+\\d{2,4}$",
+      "required": true,
+      "label_field": "Luogo e data di sottoscrizione",
+      "formatMessage": "Il formato deve essere 'Luogo, GG/MM/AAAA' o 'Luogo, GG mese AAAA'",
+      "requiredMessage": "Il luogo e la data di sottoscrizione sono obbligatori"
+    },
+    {
+      "enum": [
+        "Firma digitale",
+        "Firma elettronica qualificata",
+        "Firma elettronica avanzata",
+        "Documento firmato digitalmente",
+        "SI",
+        ""
+      ],
+      "field": "Firma.SottoscrizioneDigitale",
+      "required": false,
+      "label_field": "Sottoscrizione digitale"
+    }
+  ],
+  "crossFieldRules": [
+    {
+      "rules": [
+        "Almeno uno tra Lotto 1, Lotto 2, Lotto 3 o Lotto 4 deve essere selezionato con valore 'SI'",
+        "I campi con placeholder o valori vuoti vengono ignorati nella validazione"
+      ],
+      "message": "Deve essere selezionato almeno un lotto per la manifestazione di interesse",
+      "condition": {
+        "anyOf": [
+          "ManifestazioneInteresse.Lotti.Lotto1",
+          "ManifestazioneInteresse.Lotti.Lotto2",
+          "ManifestazioneInteresse.Lotti.Lotto3",
+          "ManifestazioneInteresse.Lotti.Lotto4"
+        ]
+      },
+      "checkValue": "SI",
+      "ignoreEmptyAndPlaceholders": true
+    },
+    {
+      "rules": [
+        "Se viene compilato un campo dell'indirizzo della sede legale, devono essere compilati tutti",
+        "Indirizzo, Città, Provincia e CAP sono tutti obbligatori per la sede legale"
+      ],
+      "message": "L'indirizzo della sede legale deve essere completo di tutti i campi: indirizzo, città, provincia e CAP",
+      "condition": {
+        "allOf": [
+          "Azienda.SedeLegale.Indirizzo",
+          "Azienda.SedeLegale.Citta",
+          "Azienda.SedeLegale.Provincia",
+          "Azienda.SedeLegale.CAP"
+        ]
+      },
+      "ignoreEmptyAndPlaceholders": true
+    },
+    {
+      "rules": [
+        "Le modalità di partecipazione sono mutuamente esclusive",
+        "Non è possibile partecipare contemporaneamente come impresa singola e in raggruppamento",
+        "Non è possibile partecipare contemporaneamente come impresa singola e tramite consorzio",
+        "Non è possibile partecipare contemporaneamente in raggruppamento e tramite consorzio",
+        "Se si seleziona 'Altro', non devono essere compilate le altre modalità"
+      ],
+      "message": "Deve essere selezionata una sola modalità di partecipazione tra: Impresa Singola, Raggruppamento Temporaneo, Consorzio o Altro",
+      "condition": {
+        "mutuallyExclusive": [
+          "ManifestazioneInteresse.ModalitaPartecipazione.ImpresaSingola.Tipologia",
+          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
+          "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
+          "ManifestazioneInteresse.ModalitaPartecipazione.Altro.Specificare"
+        ]
+      },
+      "ignoreEmptyAndPlaceholders": true
+    },
+    {
+      "rules": [
+        "È obbligatorio specificare la modalità di partecipazione alla procedura",
+        "Selezionare una tra: Impresa Singola, Raggruppamento Temporaneo (RTI/RTP), Consorzio o Altro"
+      ],
+      "message": "Deve essere indicata almeno una modalità di partecipazione",
+      "condition": {
+        "anyOf": [
+          "ManifestazioneInteresse.ModalitaPartecipazione.ImpresaSingola.Tipologia",
+          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
+          "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
+          "ManifestazioneInteresse.ModalitaPartecipazione.Altro.Specificare"
+        ]
+      },
+      "ignoreEmptyAndPlaceholders": true
+    },
+    {
+      "rules": [
+        "Se si partecipa in raggruppamento temporaneo, specificare la tipologia (RTI/RTP Costituito o Costituendo)",
+        "Indicare il ruolo dell'operatore economico nel raggruppamento (Mandataria o Mandante)",
+        "Indicare la ragione sociale dell'impresa Mandataria o Mandante"
+      ],
+      "message": "In caso di partecipazione in RTI/RTP, devono essere compilati tutti i campi: tipologia, ruolo e ragione sociale",
+      "condition": {
+        "allOf": [
+          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
+          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.Ruolo",
+          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.RagioneSocialeMandataria"
+        ]
+      },
+      "ignoreEmptyAndPlaceholders": true
+    },
+    {
+      "rules": [
+        "Se si partecipa tramite consorzio, specificare la tipologia di consorzio",
+        "Indicare il ruolo dell'operatore economico (Consorzio o Consorziata esecutrice)",
+        "Se il ruolo è 'Consorziata esecutrice', indicare anche la ragione sociale del consorzio"
+      ],
+      "message": "In caso di partecipazione tramite consorzio, devono essere compilati tipologia e ruolo",
+      "condition": {
+        "allOf": [
+          "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
+          "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.Ruolo"
+        ]
+      },
+      "ignoreEmptyAndPlaceholders": true
+    },
+    {
+      "rules": [
+        "Il sottoscrittore deve indicare nome e cognome completi",
+        "Devono essere indicati luogo, provincia e data di nascita",
+        "La qualifica del sottoscrittore è obbligatoria per validare i poteri di firma"
+      ],
+      "message": "I dati anagrafici del sottoscrittore devono essere completi",
+      "condition": {
+        "allOf": [
+          "Sottoscrittore.NomeCognome",
+          "Sottoscrittore.LuogoNascita",
+          "Sottoscrittore.ProvinciaNascita",
+          "Sottoscrittore.DataNascita",
+          "Sottoscrittore.Qualifica"
+        ]
+      },
+      "ignoreEmptyAndPlaceholders": true
+    },
+    {
+      "rules": [
+        "La ragione sociale dell'azienda è obbligatoria",
+        "Il codice fiscale dell'azienda è obbligatorio",
+        "La partita IVA dell'azienda è obbligatoria"
+      ],
+      "message": "I dati identificativi dell'azienda devono essere completi: ragione sociale, codice fiscale e partita IVA",
+      "condition": {
+        "allOf": [
+          "Azienda.RagioneSociale",
+          "Azienda.CodiceFiscale",
+          "Azienda.PartitaIva"
+        ]
+      },
+      "ignoreEmptyAndPlaceholders": true
+    },
+    {
+      "rules": [
+        "È obbligatorio fornire almeno un indirizzo di posta elettronica",
+        "La PEC è preferibile per le comunicazioni ufficiali con la Pubblica Amministrazione",
+        "Se disponibile, indicare sia email ordinaria che PEC"
+      ],
+      "message": "Deve essere indicato almeno un recapito email (Email o PEC)",
+      "condition": {
+        "anyOf": [
+          "Azienda.Contatti.Email",
+          "Azienda.Contatti.PEC"
+        ]
+      },
+      "ignoreEmptyAndPlaceholders": true
+    }
+  ]
+    }

@@ -1,0 +1,37 @@
+# Core Framework
+fastapi==0.116.1
+uvicorn==0.35.0
+starlette==0.47.2
+python-multipart==0.0.20
+
+# Database
+sqlalchemy==2.0.41
+sqlmodel==0.0.22
+pymysql==1.1.1
+
+# Pydantic & Validation
+pydantic==2.11.7
+pydantic-core==2.33.2
+pydantic-settings==2.10.1
+annotated-types==0.7.0
+
+# Authentication & Security
+bcrypt==4.2.1
+pyjwt==2.10.1
+python-jose==3.3.0
+python-dotenv==1.1.1
+cryptography==45.0.7
+
+# YAML configuration
+pyyaml==6.0.2
+
+# Azure Services (for Content Understanding)
+azure-ai-contentunderstanding==1.0.0b1
+azure-core==1.35.0
+
+# HTTP & Networking
+httpx==0.28.1
+requests==2.32.5
+
+# Type Checking
+typing-extensions==4.14.1

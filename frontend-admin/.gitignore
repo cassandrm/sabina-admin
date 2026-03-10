@@ -1,0 +1,24 @@
+# Deno
+.deno/
+deno.lock
+
+# Fresh
+_fresh/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

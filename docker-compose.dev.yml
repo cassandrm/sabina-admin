@@ -1,0 +1,56 @@
+version: '3.8'  # OBBLIGATORIO per networks con external/name
+
+
+# This docker-compose connects to the existing SABINA database
+# Run with: docker-compose -f docker-compose.dev.yml -f docker-compose.admin.yml up
+
+services:
+  backend-admin:
+    build:
+      context: ./backend-admin
+      dockerfile: Dockerfile
+    container_name: backend-admin
+    ports:
+      - "8002:8002"
+    environment:
+      - SQLALCHEMY_DATABASE_URL=mysql+pymysql://posteitaliane:password@sabina-database:3306/sabina
+      - API_KEY=development-test-key
+      - JWT_SECRET_KEY=your-jwt-secret-key
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - CONFIG_YAML_DIR=/usr/src/app/config/
+      - AZURE_CONTENT_UNDERSTANDING_ENDPOINT=${CU_ENDPOINT}
+      - AZURE_CONTENT_UNDERSTANDING_KEY=${CU_KEY}
+    volumes:
+      - ./backend-admin/src:/usr/src/app/src
+      - ./backend-admin/config:/usr/src/app/config
+    networks:
+      - sabina-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  frontend-admin:
+    build:
+      context: ./frontend-admin
+      dockerfile: Dockerfile
+    container_name: frontend-admin
+    ports:
+      - "8001:8000"
+    environment:
+      - BACKEND_URL=http://backend-admin:8002
+    depends_on:
+      backend-admin:
+        condition: service_healthy
+    networks:
+      - sabina-network
+    restart: unless-stopped
+
+networks:       
+  sabina-network:
+    external: true
+    name: sabina-network  # Nome esatto da docker network ls
+

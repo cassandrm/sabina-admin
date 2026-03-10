@@ -1,0 +1,10 @@
+name: dichiarazione_soggetti
+
+label_name : Dichiarazione soggetti
+
+pattern: ALLEGATO B.1
+
+analyzer_id: dichiarazione_soggetti
+
+validation_rules: |
+  {}
