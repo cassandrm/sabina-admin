@@ -211,7 +211,7 @@ class ValidationBaseService(ABC):
                 valid_fields.append({
                     'field': f"{array_path}[{idx}].{item_field_path}",
                     'label_field': rule.get('label_field', field),
-                    'value': self._decode_unicode_escapes(value),
+                    'value': self._fix_encoding(value),
                     'rule_description': (
                         rule.get('description') or
                         rule.get('formatMessage') or
@@ -220,7 +220,7 @@ class ValidationBaseService(ABC):
                 })
 
         # Decodifica errori unicode
-        decoded_errors = [self._decode_unicode_escapes(err) for err in errors]
+        decoded_errors = [self._fix_encoding(err) for err in errors]
         return decoded_errors, valid_fields
 
 
@@ -380,7 +380,7 @@ class ValidationBaseService(ABC):
             decoded_field_errors = []
             for fe in field_errors:
                 if isinstance(fe, str):
-                    decoded_field_errors.append(self._decode_unicode_escapes(fe))
+                    decoded_field_errors.append(self._fix_encoding(fe))
                 else:
                     decoded_field_errors.append(fe)
 
@@ -391,7 +391,7 @@ class ValidationBaseService(ABC):
                 valid_fields.append({
                     'field': field,
                     'label_field': rule.get('label_field', field),
-                    'value': self._decode_unicode_escapes(value),
+                    'value': self._fix_encoding(value),
                     'rule_description': (
                         rule.get('description') or
                         rule.get('formatMessage') or
@@ -435,7 +435,7 @@ class ValidationBaseService(ABC):
 
         # Ritorna già con valori/label già decodificati e puliti
         decoded_valid_fields = valid_fields
-        decoded_errors = [self._decode_unicode_escapes(err) for err in errors]
+        decoded_errors = [self._fix_encoding(err) for err in errors]
 
         return {
             'valid_fields': decoded_valid_fields,
@@ -444,17 +444,33 @@ class ValidationBaseService(ABC):
         }
 
 
-    def _decode_unicode_escapes(self, obj):
-        """Ricorsivamente decodifica stringhe con escape unicode."""
+    def _fix_encoding(self, obj):
+        """
+        Corregge ricorsivamente problemi di encoding UTF-8 (mojibake)
+        es: "SOCIETÃÂ PER AZIONI" -> "SOCIETÀ PER AZIONI"
+        Applica il fix ripetutamente finché il testo non cambia più.
+        """
         if isinstance(obj, str):
-            try:
-                return obj.encode().decode('unicode_escape')
-            except Exception:
-                return obj
-        if isinstance(obj, dict):
-            return {k: self._decode_unicode_escapes(v) for k, v in obj.items()}
-        if isinstance(obj, list):
-            return [self._decode_unicode_escapes(v) for v in obj]
+            result = obj
+            for _ in range(3):  # Max 3 iterazioni
+                try:
+                    decoded = result.encode('latin-1').decode('utf-8')
+                    if decoded == result:
+                        break
+                    result = decoded
+                except (UnicodeDecodeError, UnicodeEncodeError):
+                    try:
+                        decoded = result.encode('cp1252').decode('utf-8')
+                        if decoded == result:
+                            break
+                        result = decoded
+                    except (UnicodeDecodeError, UnicodeEncodeError):
+                        break
+            return result
+        elif isinstance(obj, dict):
+            return {self._fix_encoding(k): self._fix_encoding(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._fix_encoding(item) for item in obj]
         return obj
 
 

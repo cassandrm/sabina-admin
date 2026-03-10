@@ -15,6 +15,7 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
     const [validationRules, setValidationRules] = useState("");
     const [loadingRules, setLoadingRules] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [savingDB, setSavingDB] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -54,6 +55,89 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
         } catch {
             return false;
         }
+    };
+
+    // Fix mojibake (UTF-8 interpreted as Latin-1), matching backend _fix_encoding logic.
+    // Applies up to 3 rounds of latin-1 → utf-8 re-decoding.
+    const fixEncoding = (str: string): string => {
+        if (!str) return str;
+        let result = str;
+        for (let i = 0; i < 3; i++) {
+            try {
+                // Re-encode as latin-1 bytes then decode as utf-8
+                const bytes = new Uint8Array(result.length);
+                for (let j = 0; j < result.length; j++) bytes[j] = result.charCodeAt(j) & 0xff;
+                const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+                if (decoded === result) break;
+                result = decoded;
+            } catch {
+                break;
+            }
+        }
+        return result;
+    };
+
+    // Render a single field row (used for both error and valid fields)
+    // Row for a valid field object { field, label_field, value, rule_description }
+    const FieldRow = ({ item }: { item: Record<string, unknown> }) => {
+        const label = fixEncoding(String(item.label_field ?? item.field ?? ""));
+        const field = fixEncoding(String(item.field ?? ""));
+        const value = item.value !== undefined && item.value !== null ? String(item.value) : "—";
+        return (
+            <div style={{ padding: "0.5rem 0.75rem", marginBottom: "0.35rem", borderRadius: "6px", background: "#f0fff4", border: "1px solid #b7efc5", fontSize: "0.82rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                    <span style={{ fontWeight: 600, color: "#1a7a3c", flex: 1 }}>{label}</span>
+                    <span style={{ fontFamily: "monospace", color: "#555", background: "#d4f5de", padding: "1px 7px", borderRadius: "4px", whiteSpace: "nowrap", maxWidth: "45%", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</span>
+                </div>
+                <div style={{ marginTop: "0.2rem", color: "#888", fontSize: "0.73rem" }}>{field}</div>
+            </div>
+        );
+    };
+
+    // Row for a plain error message string
+    const ErrorRow = ({ message }: { message: string }) => (
+        <div style={{ padding: "0.5rem 0.75rem", marginBottom: "0.35rem", borderRadius: "6px", background: "#fff5f5", border: "1px solid #f5c6cb", fontSize: "0.82rem", color: "#7b2d2d" }}>
+            ⚠ {message}
+        </div>
+    );
+
+    // Formatted validation result display
+    const ValidationResultDisplay = ({ resultJson }: { resultJson: string }) => {
+        let parsed: Record<string, unknown>;
+        try {
+            parsed = JSON.parse(resultJson);
+        } catch {
+            return <pre style={{ fontSize: "0.82rem", color: "#333" }}>{resultJson}</pre>;
+        }
+        const isValid = Boolean(parsed.is_valid);
+        const errors: Record<string, unknown>[] = Array.isArray(parsed.error_fields) ? parsed.error_fields as Record<string, unknown>[] : [];
+        const valids: Record<string, unknown>[] = Array.isArray(parsed.valid_fields) ? parsed.valid_fields as Record<string, unknown>[] : [];
+        return (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0", overflowY: "auto", flex: 1 }}>
+                {/* Summary badge */}
+                <div style={{ padding: "0.5rem 0.75rem", marginBottom: "0.6rem", borderRadius: "6px", background: isValid ? "#d4edda" : "#f8d7da", border: `1px solid ${isValid ? "#c3e6cb" : "#f5c6cb"}`, fontWeight: 700, fontSize: "0.9rem", color: isValid ? "#155724" : "#721c24", textAlign: "center" }}>
+                    {isValid ? "✅ Validazione superata" : `❌ Validazione fallita — ${errors.length} error${errors.length === 1 ? "e" : "i"}, ${valids.length} campo${valids.length === 1 ? "" : "i"} valido${valids.length === 1 ? "" : "i"}`}
+                </div>
+                {/* Errors first */}
+                {errors.length > 0 && (
+                    <div style={{ marginBottom: "0.6rem" }}>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#c0392b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.3rem" }}>Campi con errori ({errors.length})</div>
+                        {errors.map((item, i) =>
+                            typeof item === "string"
+                                ? <ErrorRow key={i} message={fixEncoding(item)} />
+                                : <ErrorRow key={i} message={fixEncoding(String((item as Record<string,unknown>).rule_description ?? (item as Record<string,unknown>).label_field ?? JSON.stringify(item)))} />
+                        )}
+                    </div>
+                )}
+                {/* Valid fields */}
+                {valids.length > 0 && (
+                    <div>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#1a7a3c", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.3rem" }}>Campi validi ({valids.length})</div>
+                        {valids.map((item, i) => <FieldRow key={i} item={item} />)}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     // Modal component
@@ -141,6 +225,49 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
             setError(err instanceof Error ? err.message : "Errore sconosciuto");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleSaveDB = async () => {
+        let parsedValidationRules;
+        try {
+            parsedValidationRules = JSON.parse(validationRules);
+        } catch {
+            setValidationError("validation_rules non è un JSON valido");
+            return;
+        }
+        if (!parsedValidationRules || Object.keys(parsedValidationRules).length === 0) {
+            setValidationError("Le validation rules non possono essere vuote.");
+            return;
+        }
+        setValidationError(null);
+        setSavingDB(true);
+        setError(null);
+        try {
+            setModal({ message: 'Salvataggio su DB in corso...', spinner: true });
+            const response = await fetch(`/api/admin/schemas/${schema.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+                },
+                body: JSON.stringify({ analyzer_id, patterns, validation_rules: parsedValidationRules }),
+            });
+            const respText = await response.text();
+            if (!response.ok) {
+                const errorData = respText ? JSON.parse(respText) : {};
+                setModal({ message: errorData.detail || 'Errore nel salvataggio su DB', onClose: () => setModal(null) });
+                throw new Error(errorData.detail || "Errore nel salvataggio su DB");
+            }
+            setModal({ message: 'Salvataggio su DB completato con successo!' });
+            setTimeout(() => {
+                setModal(null);
+                onUpdated();
+            }, 2000);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Errore sconosciuto");
+        } finally {
+            setSavingDB(false);
         }
     };
 
@@ -265,9 +392,35 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                 style={{ display: "none" }}
                 onChange={handleFileSelected}
             />
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', marginTop: 0, color: '#1976d2' }}>
-                Modifica Schema: {schema.name || schema.analyzer_id}
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#1976d2' }}>
+                    Modifica Schema: {schema.name || schema.analyzer_id}
+                </h2>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving || savingDB || !validateJson(validationRules) || !validationRules.trim()}
+                        style={{ padding: '0.45rem 1.1rem', backgroundColor: saving ? '#6c757d' : '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '0.95rem', fontWeight: 'bold' }}
+                        title="Salva validation_rules nel file YAML + analyzer_id/patterns nel DB"
+                    >
+                        {saving ? 'Salvataggio...' : '💾 Salva su YAML'}
+                    </button>
+                    <button
+                        onClick={handleSaveDB}
+                        disabled={savingDB || saving || !validateJson(validationRules) || !validationRules.trim()}
+                        style={{ padding: '0.45rem 1.1rem', backgroundColor: savingDB ? '#6c757d' : '#0d6efd', color: 'white', border: 'none', borderRadius: '4px', cursor: savingDB ? 'not-allowed' : 'pointer', fontSize: '0.95rem', fontWeight: 'bold' }}
+                        title="Salva tutte le modifiche (analyzer_id, patterns, validation_rules) nel DB"
+                    >
+                        {savingDB ? 'Salvataggio...' : '🗄️ Salva su DB'}
+                    </button>
+                    <button
+                        onClick={onClose}
+                        style={{ padding: '0.45rem 1.1rem', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 'bold' }}
+                    >
+                        Annulla
+                    </button>
+                </div>
+            </div>
 
             {error && (
                 <div style={{ color: '#dc3545', padding: '0.5rem', background: '#f8d7da', borderRadius: '4px', marginBottom: '0.5rem' }}>
@@ -299,7 +452,7 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                 <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'stretch', width: '100%' }}>
 
                     {/* LEFT: Validation Rules */}
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                         <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "bold" }}>Validation Rules (da file YAML):</label>
                         {validationError && (
                             <div style={{ color: '#dc3545', marginBottom: '0.5rem' }}>{validationError}</div>
@@ -310,7 +463,7 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                             <textarea
                                 value={validationRules}
                                 onChange={(e: Event) => setValidationRules((e.target as HTMLTextAreaElement).value)}
-                                style={{ flex: 1, width: "100%", minHeight: '340px', padding: "0.5rem", border: "1px solid #ced4da", borderRadius: "4px", fontFamily: "monospace", fontSize: "1rem", resize: 'none', boxSizing: 'border-box' }}
+                                style={{ flex: 1, width: "100%", minHeight: "200px", padding: "0.5rem", border: "1px solid #ced4da", borderRadius: "4px", fontFamily: "monospace", fontSize: "1rem", resize: 'none', overflowY: "auto", boxSizing: 'border-box' }}
                             />
                         )}
                     </div>
@@ -346,43 +499,42 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                             </div>
                         </div>
 
-                        {/* Upload button: only shown when no data extracted yet */}
-                        {testMode === "upload" && !analyzeResult && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                <button
-                                    onClick={handleUpload}
-                                    disabled={analyzing || !analyzer_id}
-                                    style={{ padding: "0.65rem 1rem", backgroundColor: analyzing ? "#6c757d" : "#0d6efd", color: "white", border: "none", borderRadius: "4px", cursor: analyzing ? "not-allowed" : "pointer", fontSize: "1rem" }}
-                                >
-                                    {analyzing ? "Analisi in corso..." : "📄 Carica PDF e analizza"}
-                                </button>
-                                {!analyzer_id && (
-                                    <div style={{ fontSize: '0.85rem', color: '#6c757d', fontStyle: 'italic' }}>Analyzer ID mancante: impossibile analizzare il PDF.</div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Upload mode: textarea always visible */}
+                        {/* Upload mode: textarea with overlaid button when no data yet */}
                         {testMode === "upload" && (
-                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {analyzeResult && (
                                     <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', color: '#495057' }}>
                                         Dati estratti dal PDF:
                                     </label>
                                 )}
-                                <textarea
-                                    value={analyzeResult}
-                                    readOnly
-                                    placeholder="I dati estratti dal PDF appariranno qui..."
-                                    style={{ flex: 1, width: "100%", minHeight: "260px", padding: "0.5rem", border: "1px solid #ced4da", borderRadius: "4px", fontFamily: "monospace", fontSize: "0.9rem", resize: "none", backgroundColor: "#fff", boxSizing: 'border-box', color: analyzeResult ? 'inherit' : '#adb5bd' }}
-                                />
+                                <div style={{ position: 'relative' }}>
+                                    <textarea
+                                        value={analyzeResult}
+                                        readOnly
+                                        placeholder={analyzeResult ? '' : 'I dati estratti dal PDF appariranno qui...'}
+                                        style={{ width: "100%", height: "200px", padding: "0.5rem", border: "1px solid #ced4da", borderRadius: "4px", fontFamily: "monospace", fontSize: "0.9rem", resize: "none", overflowY: "auto", backgroundColor: "#fff", boxSizing: 'border-box', color: analyzeResult ? 'inherit' : '#adb5bd' }}
+                                    />
+                                    {!analyzeResult && (
+                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', pointerEvents: 'none' }}>
+                                            <button
+                                                onClick={handleUpload}
+                                                disabled={analyzing || !analyzer_id}
+                                                style={{ pointerEvents: 'all', padding: "0.6rem 1.4rem", backgroundColor: analyzing ? "#6c757d" : "#0d6efd", color: "white", border: "none", borderRadius: "4px", cursor: analyzing ? "not-allowed" : "pointer", fontSize: "0.95rem", fontWeight: 'bold', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}
+                                            >
+                                                {analyzing ? "Analisi in corso..." : "📄 Carica PDF e analizza"}
+                                            </button>
+                                            {!analyzer_id && (
+                                                <div style={{ pointerEvents: 'none', fontSize: '0.82rem', color: '#6c757d', fontStyle: 'italic' }}>Analyzer ID mancante</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
                         {/* Paste mode */}
                         {testMode === "paste" && (
-                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', color: '#495057' }}>Incolla qui il JSON con i dati estratti dal documento:</label>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {pasteError && (
                                     <div style={{ color: '#dc3545', marginBottom: '0.4rem', fontSize: '0.9rem' }}>{pasteError}</div>
                                 )}
@@ -399,60 +551,35 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                                             setPasteError(null);
                                         }
                                     }}
-                                    placeholder={'{\n  "field": "value",\n  ...\n}'}
-                                    style={{ flex: 1, width: "100%", minHeight: '260px', padding: "0.5rem", border: pasteError ? "2px solid #dc3545" : "1px solid #ced4da", borderRadius: "4px", fontFamily: "monospace", fontSize: "0.9rem", resize: 'none', boxSizing: 'border-box' }}
+                                    placeholder={'Incolla qui il JSON con i dati estratti dal documento:\n\n{\n  "field": "value",\n  ...\n}'}
+                                    style={{ width: "100%", height: "200px", padding: "0.5rem", border: pasteError ? "2px solid #dc3545" : "1px solid #ced4da", borderRadius: "4px", fontFamily: "monospace", fontSize: "0.9rem", resize: "none", overflowY: "auto", boxSizing: 'border-box' }}
                                 />
                             </div>
                         )}
 
-                        {/* Validation result for active tab */}
-                        {(() => {
-                            const activeResult = testMode === "paste" ? pasteValidationResult : uploadValidationResult;
-                            if (!activeResult) return null;
-                            const parsed = JSON.parse(activeResult);
-                            const isValid = parsed.is_valid;
-                            return (
-                                <div>
-                                    <label style={{ display: "block", marginBottom: "0.4rem", fontWeight: "bold", color: isValid ? "#28a745" : "#dc3545", fontSize: '0.9rem' }}>
-                                        {isValid ? "✅ Validazione Superata" : "❌ Risultato Validazione"}
-                                    </label>
-                                    <textarea
-                                        value={activeResult}
-                                        readOnly
-                                        rows={14}
-                                        style={{ width: "100%", minHeight: "200px", padding: "0.5rem", border: `2px solid ${isValid ? "#28a745" : "#dc3545"}`, borderRadius: "4px", fontFamily: "monospace", fontSize: "0.9rem", resize: "vertical", backgroundColor: isValid ? "#f0fff0" : "#fff0f0", boxSizing: 'border-box' }}
-                                    />
-                                </div>
-                            );
-                        })()}
-
-                        {/* Validate button always at bottom */}
+                        {/* Validate button */}
                         <button
                             onClick={handleValidate}
                             disabled={validating || !(testMode === "paste" ? pasteResult.trim() && !pasteError : analyzeResult.trim())}
-                            style={{ padding: "0.75rem 1rem", backgroundColor: (validating || !(testMode === "paste" ? pasteResult.trim() && !pasteError : analyzeResult.trim())) ? "#6c757d" : "#ff9800", color: "white", border: "none", borderRadius: "4px", cursor: (validating || !(testMode === "paste" ? pasteResult.trim() && !pasteError : analyzeResult.trim())) ? "not-allowed" : "pointer", fontSize: "1rem", fontWeight: "bold", marginTop: 'auto' }}
+                            style={{ padding: "0.75rem 1rem", backgroundColor: (validating || !(testMode === "paste" ? pasteResult.trim() && !pasteError : analyzeResult.trim())) ? "#6c757d" : "#ff9800", color: "white", border: "none", borderRadius: "4px", cursor: (validating || !(testMode === "paste" ? pasteResult.trim() && !pasteError : analyzeResult.trim())) ? "not-allowed" : "pointer", fontSize: "1rem", fontWeight: "bold" }}
                         >
                             {validating ? "Validazione in corso..." : "✅ Applica Regole di Validazione"}
                         </button>
+
+                        {/* Validation result for active tab — below the button */}
+                        {(() => {
+                            const activeResult = testMode === "paste" ? pasteValidationResult : uploadValidationResult;
+                            if (!activeResult) return null;
+                            return (
+                                <div style={{ marginTop: "0.25rem" }}>
+                                    <ValidationResultDisplay resultJson={activeResult} />
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
 
-                {/* Bottom action buttons */}
-                <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving || !validateJson(validationRules) || !validationRules.trim()}
-                        style={{ flex: 1, padding: "0.75rem", backgroundColor: saving ? "#6c757d" : "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: saving ? "not-allowed" : "pointer", fontSize: "1rem" }}
-                    >
-                        {saving ? "Salvataggio..." : "💾 Salva Modifiche"}
-                    </button>
-                    <button
-                        onClick={onClose}
-                        style={{ flex: 1, padding: "0.75rem", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "1rem" }}
-                    >
-                        Annulla
-                    </button>
-                </div>
+
             </div>
 
             {modal && <Modal message={modal.message} spinner={modal.spinner} onClose={modal.onClose} />}
