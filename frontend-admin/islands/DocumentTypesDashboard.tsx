@@ -79,7 +79,7 @@ export default function DocumentTypesDashboard() {
     };
 
     return (
-        <div className="document-types-dashboard" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', background: '#f7f7f7', minHeight: '100vh', height: 'auto', margin: 0, padding: '1rem', boxSizing: 'border-box', overflowX: 'hidden' }}>
+        <div className="document-types-dashboard" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', background: '#f7f7f7', minHeight: '100vh', height: 'auto', margin: 0, padding: '1rem', boxSizing: 'border-box', overflowX: 'hidden' }}>
             {modal && <Modal message={modal.message} spinner={modal.spinner} onClose={modal.onClose} />}
 
 

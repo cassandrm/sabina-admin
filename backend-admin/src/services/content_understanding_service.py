@@ -34,7 +34,7 @@ class ContentUnderstandingService:
             custom_analyzers = [
                 {"analyzer_id": a.analyzer_id, "description": a.analyzer_id}
                 for a in client.list_analyzers()
-                if not a.analyzer_id.startswith("prebuilt-")
+                if not a.analyzer_id.startswith("prebuilt-") and not a.analyzer_id.startswith("projectAnalyzer")
             ]
             logger.info(f"Trovati {len(custom_analyzers)} analyzer custom")
             return {"analyzers": custom_analyzers}

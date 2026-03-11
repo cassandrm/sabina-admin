@@ -284,12 +284,10 @@ async def create_schema(
         f"{gen_result.get('num_cross_rules', 0)} cross-field rules)"
     )
 
-    label_name = _to_pascal_label(analyzer_id)
-
     # ── Step 3: salva lo schema con le regole in DB ──────────────────────────────
     schema_data = schema_create.model_dump()
     schema_data["validation_rules"] = validation_rules
-    schema_data["label"] = label_name
+    schema_data["label"] = _to_pascal_label(schema_create.analyzer_id)
     logger.info(f"[create_schema] Inserimento nuovo schema in DB: {schema_data}")
 
     try:
@@ -322,7 +320,7 @@ async def create_schema(
                 pattern_val = new_schema.patterns or ""
                 new_content = (
                     f"name: {analyzer_id}\n\n"
-                    f"label_name: {label_name}\n\n"
+                    f"label_name: {new_schema.label}\n\n"
                     f"pattern: {pattern_val}\n\n"
                     f"analyzer_id: {analyzer_id}\n\n"
                     f"validation_rules: |\n{indented_json}\n"
