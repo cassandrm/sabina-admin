@@ -96,8 +96,15 @@ export default function DocumentTypesDashboard() {
                     }}
                 />
             ) : (
-                <div style={{ border: '2px solid #007bff', borderRadius: '8px', padding: 0, backgroundColor: '#f8f9fa', margin: 0, maxWidth: '1700px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', overflowX: 'auto' }}>
-                    <table style={{ width: '100%', maxWidth: '1700px', margin: 0, borderCollapse: 'collapse' }}>
+                <div style={{ border: '2px solid #007bff', borderRadius: '8px', padding: 0, backgroundColor: '#f8f9fa', margin: 0, width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', overflowX: 'auto' }}>
+                    <table style={{ width: '100%', margin: 0, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                        <colgroup>
+                            <col style={{ width: '20%' }} />
+                            <col style={{ width: '30%' }} />
+                            <col style={{ width: '15%' }} />
+                            <col style={{ width: '15%' }} />
+                            <col style={{ width: '20%' }} />
+                        </colgroup>
                         <thead>
                             <tr style={{ background: '#e9ecef' }}>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Nome</th>
