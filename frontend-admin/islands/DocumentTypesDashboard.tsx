@@ -86,7 +86,10 @@ export default function DocumentTypesDashboard() {
             {editingSchema ? (
                 <SchemaEditor
                     schema={editingSchema}
-                    onClose={() => setEditingSchema(null)}
+                    onClose={() => {
+                        setEditingSchema(null);
+                        getAllDocumentTypes().then((data) => setDocumentTypes(data.schemas));
+                    }}
                     onUpdated={() => {
                         setEditingSchema(null);
                         getAllDocumentTypes().then((data) => setDocumentTypes(data.schemas));
