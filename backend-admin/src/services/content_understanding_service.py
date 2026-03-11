@@ -1,11 +1,11 @@
 import json
 import os
+import logging
 from typing import Dict, Any, Optional
 from collections import OrderedDict
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.contentunderstanding import ContentUnderstandingClient
 from sqlalchemy.orm import Session
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,6 @@ class ContentUnderstandingService:
             logger.error(f"❌ Errore nel recupero schema per analyzer_id {analyzer_id}: {e}")
             return {"analyzer_id": analyzer_id}
 
-
     def decode_unicode_escapes(self, obj):
         """Decodifica double/triple unicode escapes ricorsivamente."""
         if isinstance(obj, str):
@@ -101,21 +100,21 @@ class ContentUnderstandingService:
             return [self.decode_unicode_escapes(item) for item in obj]
         else:
             return obj
-        
+
     async def getJsonData(self, analyzer_id: str, binary_data: bytes) -> Optional[str]:
         try:
             print("\n⚙️ Inizio elaborazione PDF con Azure Content Understanding...\n")
 
             # Inizializza il client di Content Understanding
             from ..settings import settings
-            
+
             endpoint = settings.azure_content_understanding_endpoint
             key = settings.azure_content_understanding_key
-            
+
             if not endpoint or not key:
                 logger.error("ENDPOINT o KEY_CONTENT_UNDERSTANDING non configurati nelle variabili d'ambiente")
                 return None
-            
+
             content_understanding_client = ContentUnderstandingClient(
                 endpoint=endpoint,
                 credential=AzureKeyCredential(key)
@@ -128,7 +127,6 @@ class ContentUnderstandingService:
             )
 
             result = poller.result()
-
 
             # Recupera i dettagli di utilizzo (token, pagine, ecc.) dalla risposta di polling
             # 'usage' è nel body della LRO status (ContentAnalyzerAnalyzeOperationStatus),
@@ -159,7 +157,7 @@ class ContentUnderstandingService:
                     logger.info("\n⚠️ Nessun dettaglio di utilizzo disponibile nella risposta.")
             except Exception as e:
                 logger.error(f"\n⚠️ Impossibile recuperare i dettagli di utilizzo: {e}")
-                
+
             data = result.as_dict()
 
             # Debug: logga la struttura della risposta
@@ -183,40 +181,14 @@ class ContentUnderstandingService:
                 for content in data['contents']:
                     fields = content.get('fields', {})
                     break
-            
-            # # Pulisci i fields: mantieni solo i valori, rimuovi type/spans/confidence/source
-            # def clean_fields(obj):
-            #     if isinstance(obj, dict):
-            #         # Se è un campo con valueString/valueNumber/etc., estrai solo il valore
-            #         if 'type' in obj:
-            #             if 'valueString' in obj:
-            #                 return obj['valueString']
-            #             elif 'valueNumber' in obj:
-            #                 return obj['valueNumber']
-            #             elif 'valueObject' in obj:
-            #                 return {str(k): clean_fields(v) for k, v in obj['valueObject'].items()}
-            #             elif 'valueArray' in obj:
-            #                 return [clean_fields(item) for item in obj['valueArray']]
-            #             else:
-            #                 return None
-            #         return {str(k): clean_fields(v) for k, v in obj.items()}
-            #     return obj
-            
+
             fields = self.clean_fields(fields)
-            
-            # # Rimuovi ricorsivamente i campi con valore null
-            # def remove_nulls(obj):
-            #     if isinstance(obj, dict):
-            #         return {str(k): remove_nulls(v) for k, v in obj.items() if v is not None}
-            #     elif isinstance(obj, list):
-            #         return [remove_nulls(item) for item in obj if item is not None]
-            #     return obj
-            
+
             fields = self.remove_nulls(fields)
 
             print("\n✅ Estrazione dei fields completata. Ecco i dati estratti:")
             print( json.dumps(fields, ensure_ascii=False, indent=2) )
-        
+
             return fields
         except KeyError as e:
             logger.error(
