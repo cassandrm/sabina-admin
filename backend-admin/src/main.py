@@ -99,7 +99,7 @@ else:
             if existing_schemas_count == 0:
                 yaml_loader = Yaml()
                 document_types = yaml_loader.getDocumentTypeFromYaml()
-                logger.info(f"Document types from YAML: {[dt.name for dt in document_types]}")
+                logger.info(f"Document types from YAML: {[dt.analyzer_id for dt in document_types]}")
                 
                 for doc_type in document_types:
                     db.add(doc_type)

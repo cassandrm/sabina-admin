@@ -182,12 +182,41 @@ class ContentUnderstandingService:
                     fields = content.get('fields', {})
                     break
 
-            fields = self.clean_fields(fields)
+            # fields = self.clean_fields(fields)
 
-            fields = self.remove_nulls(fields)
-
+            # fields = self.remove_nulls(fields)
+            # Pulisci i fields: mantieni solo i valori, rimuovi type/spans/confidence/source
+            def clean_fields(obj):
+                if isinstance(obj, dict):
+                    # Se è un campo con valueString/valueNumber/etc., estrai solo il valore
+                    if 'type' in obj:
+                        if 'valueString' in obj:
+                            return obj['valueString']
+                        elif 'valueNumber' in obj:
+                            return obj['valueNumber']
+                        elif 'valueObject' in obj:
+                            return {k: clean_fields(v) for k, v in obj['valueObject'].items()}
+                        elif 'valueArray' in obj:
+                            return [clean_fields(item) for item in obj['valueArray']]
+                        else:
+                            return None
+                    return {k: clean_fields(v) for k, v in obj.items()}
+                return obj
+            
+            fields = clean_fields(fields)
+            
+            # Rimuovi ricorsivamente i campi con valore null
+            def remove_nulls(obj):
+                if isinstance(obj, dict):
+                    return {k: remove_nulls(v) for k, v in obj.items() if v is not None}
+                elif isinstance(obj, list):
+                    return [remove_nulls(item) for item in obj if item is not None]
+                return obj
+            
+            fields = remove_nulls(fields)
+            
             print("\n✅ Estrazione dei fields completata. Ecco i dati estratti:")
-            print( json.dumps(fields, ensure_ascii=False, indent=2) )
+            print(json.dumps(fields, ensure_ascii=False, indent=2) )
 
             return fields
         except KeyError as e:
@@ -384,50 +413,50 @@ class ContentUnderstandingService:
             json_response = json_response[:-3]
         return json_response.strip()
     
-    def clean_fields(self, obj):
-        if isinstance(obj, dict):
-            # Trasforma ogni dict vuoto in stringa vuota
-            if len(obj) == 0:
-                return ""
-            obj = {k: v for k, v in obj.items() if k not in ['type', 'method', 'description']}
-            if list(obj.keys()) == ['_data'] and obj['_data'] == {}:
-                return ""
-            if list(obj.keys()) == ['_data'] and isinstance(obj['_data'], dict):
-                normalized = self.clean_fields(obj['_data'])
-                if isinstance(normalized, dict):
-                    return normalized
-                return normalized
-            if 'properties' in obj and isinstance(obj['properties'], dict):
-                properties_cleaned = self.clean_fields(obj['properties'])
-                other_keys = {k: self.clean_fields(v) for k, v in obj.items() if k != 'properties'}
-                if isinstance(properties_cleaned, dict):
-                    return {**other_keys, **properties_cleaned}
-                else:
-                    return other_keys
-            new_obj = {}
-            for k, v in obj.items():
-                normalized_v = self.clean_fields(v)
-                # Trasforma ogni dict vuoto in stringa vuota
-                if isinstance(normalized_v, dict) and len(normalized_v) == 0:
-                    new_obj[k] = ""
-                else:
-                    new_obj[k] = normalized_v
-            if 'valueString' in obj:
-                return obj['valueString']
-            elif 'valueNumber' in obj:
-                return obj['valueNumber']
-            elif 'valueObject' in obj:
-                return {k: self.clean_fields(v) for k, v in obj['valueObject'].items()}
-            elif 'valueArray' in obj:
-                return [self.clean_fields(item) for item in obj['valueArray']]
-            return new_obj
-        elif isinstance(obj, list):
-            return [self.clean_fields(item) for item in obj]
-        return obj
+    # def clean_fields(self, obj):
+    #     if isinstance(obj, dict):
+    #         # Trasforma ogni dict vuoto in stringa vuota
+    #         if len(obj) == 0:
+    #             return ""
+    #         obj = {k: v for k, v in obj.items() if k not in ['type', 'method', 'description']}
+    #         if list(obj.keys()) == ['_data'] and obj['_data'] == {}:
+    #             return ""
+    #         if list(obj.keys()) == ['_data'] and isinstance(obj['_data'], dict):
+    #             normalized = self.clean_fields(obj['_data'])
+    #             if isinstance(normalized, dict):
+    #                 return normalized
+    #             return normalized
+    #         if 'properties' in obj and isinstance(obj['properties'], dict):
+    #             properties_cleaned = self.clean_fields(obj['properties'])
+    #             other_keys = {k: self.clean_fields(v) for k, v in obj.items() if k != 'properties'}
+    #             if isinstance(properties_cleaned, dict):
+    #                 return {**other_keys, **properties_cleaned}
+    #             else:
+    #                 return other_keys
+    #         new_obj = {}
+    #         for k, v in obj.items():
+    #             normalized_v = self.clean_fields(v)
+    #             # Trasforma ogni dict vuoto in stringa vuota
+    #             if isinstance(normalized_v, dict) and len(normalized_v) == 0:
+    #                 new_obj[k] = ""
+    #             else:
+    #                 new_obj[k] = normalized_v
+    #         if 'valueString' in obj:
+    #             return obj['valueString']
+    #         elif 'valueNumber' in obj:
+    #             return obj['valueNumber']
+    #         elif 'valueObject' in obj:
+    #             return {k: self.clean_fields(v) for k, v in obj['valueObject'].items()}
+    #         elif 'valueArray' in obj:
+    #             return [self.clean_fields(item) for item in obj['valueArray']]
+    #         return new_obj
+    #     elif isinstance(obj, list):
+    #         return [self.clean_fields(item) for item in obj]
+    #     return obj
 
-    def remove_nulls(self, obj):
-        if isinstance(obj, dict):
-            return {k: self.remove_nulls(v) for k, v in obj.items() if v is not None}
-        elif isinstance(obj, list):
-            return [self.remove_nulls(item) for item in obj if item is not None]
-        return obj
+    # def remove_nulls(self, obj):
+    #     if isinstance(obj, dict):
+    #         return {k: self.remove_nulls(v) for k, v in obj.items() if v is not None}
+    #     elif isinstance(obj, list):
+    #         return [self.remove_nulls(item) for item in obj if item is not None]
+    #     return obj
