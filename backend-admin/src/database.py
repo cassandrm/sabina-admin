@@ -42,3 +42,20 @@ def create_tables():
     from .models import DocumentType, Utente
     SQLModel.metadata.create_all(engine)
     logger.info("Database tables created/verified")
+    _run_migrations()
+
+
+def _run_migrations():
+    """Apply incremental schema migrations."""
+    from sqlalchemy import text, inspect
+
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        # Migration: add is_man_interesse column if missing
+        if "document_types" in inspector.get_table_names():
+            existing_cols = [c["name"] for c in inspector.get_columns("document_types")]
+            if "is_man_interesse" not in existing_cols:
+                conn.execute(text(
+                    "ALTER TABLE document_types ADD COLUMN is_man_interesse BOOLEAN NOT NULL DEFAULT FALSE"
+                ))
+                logger.info("Migration: colonna 'is_man_interesse' aggiunta a 'document_types'")

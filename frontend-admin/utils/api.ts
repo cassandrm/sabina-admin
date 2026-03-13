@@ -56,6 +56,7 @@ export interface DocumentType {
     label?: string;
     patterns?: string;
     analyzer_id: string;
+    is_man_interesse?: boolean;
     validation_rules?: Record<string, unknown>;
 }
 

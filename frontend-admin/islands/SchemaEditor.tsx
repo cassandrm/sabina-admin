@@ -12,6 +12,7 @@ interface SchemaEditorProps {
 export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEditorProps) {
     const [analyzer_id, setAnalyzer_id] = useState(schema.analyzer_id ?? "");
     const [patterns, setPatterns] = useState(schema.patterns ?? "");
+    const [isManInteresse, setIsManInteresse] = useState(schema.is_man_interesse ?? false);
     const [validationRules, setValidationRules] = useState("");
     const [loadingRules, setLoadingRules] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -229,7 +230,7 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                 throw new Error(errorData.detail || "Errore nel salvataggio delle validation rules");
             }
 
-            // 2. Salva gli altri campi (analyzer_id, patterns) nel database
+            // 2. Salva gli altri campi (analyzer_id, patterns, is_man_interesse) nel database
             const response = await fetch(`/api/admin/schemas/${schema.id}`, {
                 method: "PUT",
                 headers: {
@@ -238,7 +239,8 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                 },
                 body: JSON.stringify({
                     analyzer_id,
-                    patterns
+                    patterns,
+                    is_man_interesse: isManInteresse,
                 }),
             });
             const respText = await response.text();
@@ -280,7 +282,7 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
                 },
-                body: JSON.stringify({ analyzer_id, patterns, validation_rules: parsedValidationRules }),
+                body: JSON.stringify({ analyzer_id, patterns, is_man_interesse: isManInteresse, validation_rules: parsedValidationRules }),
             });
             const respText = await response.text();
             if (!response.ok) {
@@ -457,7 +459,7 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#1976d2' }}>
-                    Modifica Schema: {schema.name || schema.analyzer_id}
+                    Modifica Schema: {schema.label}
                 </h2>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button
@@ -515,6 +517,19 @@ export default function SchemaEditor({ schema, onClose, onUpdated }: SchemaEdito
                         onInput={e => setPatterns((e.target as HTMLInputElement).value)}
                         style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ced4da', fontFamily: 'monospace', fontSize: '1rem', boxSizing: 'border-box' }}
                     />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <label style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }}>
+                        <input
+                            type="checkbox"
+                            checked={isManInteresse}
+                            onChange={e => setIsManInteresse((e.target as HTMLInputElement).checked)}
+                            style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#e65c00' }}
+                        />
+                        <span>Manifestazione di interesse</span>
+                    </label>
+                    <span style={{ fontSize: '0.8rem', color: '#888', fontStyle: 'italic' }}>(«is_man_interesse»)</span>
                 </div>
 
                 {/* Side-by-side: Validation Rules | Test Panel */}

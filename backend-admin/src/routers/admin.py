@@ -36,7 +36,7 @@ def _to_pascal_label(analyzer_id: str) -> str:
 def _safe_json_loads(s: str):
     """
     Robust JSON parser for LLM output that may contain:
-    - Invalid escape sequences (\d, \w, \. from regex patterns)
+    - Invalid escape sequences (\\d, \\w, \\. from regex patterns)
     - Surrounding markdown fences or stray text
     - Truncation (try to extract last complete object)
     Uses multiple repair strategies before giving up.
@@ -152,10 +152,10 @@ def get_all_schemas(
             validation_rules = schema.validation_rules if schema.validation_rules else None
             schema_dict = {
                 "id": schema.id,
-                "name": schema.name,
                 "label": schema.label,
                 "patterns": schema.patterns,
                 "analyzer_id": schema.analyzer_id,
+                "is_man_interesse": schema.is_man_interesse,
                 "validation_rules": validation_rules
             }
             schema_responses.append(DocumentTypeRead(**schema_dict))
@@ -198,13 +198,36 @@ def update_schema(
         db.commit()
         db.refresh(schema)
         logger.info(f"Schema {schema_id} updated successfully")
-        
+
+        # Aggiorna is_man_interesse nel file YAML se è stato modificato
+        if "is_man_interesse" in update_data:
+            config_path = os.path.join(CONFIG_DIR, f"{schema.analyzer_id}.yaml")
+            if os.path.exists(config_path):
+                try:
+                    with open(config_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    new_val = str(schema.is_man_interesse).lower()
+                    if re.search(r'^is_man_interesse:', content, re.MULTILINE):
+                        content = re.sub(
+                            r'^is_man_interesse:.*$',
+                            f'is_man_interesse: {new_val}',
+                            content,
+                            flags=re.MULTILINE
+                        )
+                    else:
+                        content = content.rstrip("\n") + f"\n\nis_man_interesse: {new_val}\n"
+                    with open(config_path, "w", encoding="utf-8") as f:
+                        f.write(content)
+                    logger.info(f"[update_schema] is_man_interesse aggiornato nel file YAML: {config_path}")
+                except Exception as yaml_err:
+                    logger.error(f"[update_schema] Errore aggiornamento YAML: {yaml_err}")
+
         schema_dict = {
             "id": schema.id,
-            "name": schema.name,
             "label": schema.label,
             "patterns": schema.patterns,
             "analyzer_id": schema.analyzer_id,
+            "is_man_interesse": schema.is_man_interesse,
             "validation_rules": schema.validation_rules if schema.validation_rules else None
         }
         return DocumentTypeRead(**schema_dict)
@@ -306,9 +329,21 @@ async def create_schema(
             indented_json = "\n".join("  " + line for line in validation_rules_json.splitlines())
 
             if os.path.exists(config_path):
-                # File esiste: aggiorna solo la sezione validation_rules
+                # File esiste: aggiorna validation_rules e is_man_interesse
                 with open(config_path, "r", encoding="utf-8") as f:
                     content = f.read()
+                # Aggiorna is_man_interesse
+                new_val = str(new_schema.is_man_interesse).lower()
+                if re.search(r'^is_man_interesse:', content, re.MULTILINE):
+                    content = re.sub(
+                        r'^is_man_interesse:.*$',
+                        f'is_man_interesse: {new_val}',
+                        content,
+                        flags=re.MULTILINE
+                    )
+                else:
+                    content = content.rstrip("\n") + f"\n\nis_man_interesse: {new_val}\n"
+                # Aggiorna validation_rules
                 pattern = r'(validation_rules:\s*\|)\n((?:[ \t]+.*\n?)*)'
                 replacement = r'\1\n' + indented_json + '\n'
                 new_content = re.sub(pattern, replacement, content)
@@ -319,10 +354,10 @@ async def create_schema(
                 # File non esiste: crealo con tutti i campi
                 pattern_val = new_schema.patterns or ""
                 new_content = (
-                    f"name: {analyzer_id}\n\n"
                     f"label_name: {new_schema.label}\n\n"
                     f"pattern: {pattern_val}\n\n"
                     f"analyzer_id: {analyzer_id}\n\n"
+                    f"is_man_interesse: {new_schema.is_man_interesse}\n\n"
                     f"validation_rules: |\n{indented_json}\n"
                 )
 
@@ -335,10 +370,10 @@ async def create_schema(
 
         schema_dict = {
             "id": new_schema.id,
-            "name": new_schema.name,
             "label": new_schema.label,
             "patterns": new_schema.patterns,
             "analyzer_id": new_schema.analyzer_id,
+            "is_man_interesse": new_schema.is_man_interesse,
             "validation_rules": new_schema.validation_rules,
         }
         return DocumentTypeRead(**schema_dict)
@@ -394,10 +429,10 @@ def get_validation_rules_from_file(
     schema = db.query(DocumentType).filter(DocumentType.id == schema_id).first()
     if not schema:
         raise HTTPException(status_code=404, detail=f"Schema con ID {schema_id} non trovato")
-    if not schema.name:
-        raise HTTPException(status_code=400, detail="Lo schema non ha un campo 'name' configurato")
+    if not schema.analyzer_id:
+        raise HTTPException(status_code=400, detail="Lo schema non ha un campo 'analyzer_id' configurato")
 
-    config_path = os.path.join(CONFIG_DIR, f"{schema.name}.yaml")
+    config_path = os.path.join(CONFIG_DIR, f"{schema.analyzer_id}.yaml")
     logger.info(f"Loading validation rules from: {config_path}")
 
     if not os.path.exists(config_path):
@@ -436,14 +471,14 @@ def save_validation_rules_to_file(
     schema = db.query(DocumentType).filter(DocumentType.id == schema_id).first()
     if not schema:
         raise HTTPException(status_code=404, detail=f"Schema con ID {schema_id} non trovato")
-    if not schema.name:
-        raise HTTPException(status_code=400, detail="Lo schema non ha un campo 'name' configurato")
+    if not schema.analyzer_id:
+        raise HTTPException(status_code=400, detail="Lo schema non ha un campo 'analyzer_id' configurato")
 
     validation_rules = request_body.get("validation_rules")
     if validation_rules is None:
         raise HTTPException(status_code=400, detail="validation_rules è obbligatorio")
 
-    config_path = os.path.join(CONFIG_DIR, f"{schema.name}.yaml")
+    config_path = os.path.join(CONFIG_DIR, f"{schema.analyzer_id}.yaml")
     logger.info(f"Saving validation rules to: {config_path}")
 
     try:
@@ -452,7 +487,7 @@ def save_validation_rules_to_file(
             with open(config_path, 'r', encoding='utf-8') as f:
                 content = f.read()
         else:
-            raise HTTPException(status_code=404, detail=f"File di configurazione '{schema.name}.yaml' non trovato in config/")
+            raise HTTPException(status_code=404, detail=f"File di configurazione '{schema.analyzer_id}.yaml' non trovato in config/")
 
         # Converti le validation_rules in stringa JSON indentata
         validation_rules_json = json.dumps(validation_rules, indent=2, ensure_ascii=False)
@@ -498,7 +533,7 @@ senza markdown, senza backtick, senza spiegazioni. La risposta deve iniziare con
 REGOLE FONDAMENTALI PER IL JSON:
 - Il JSON deve essere sintatticamente valido e completo.
 - I pattern regex all'interno dei valori JSON devono usare il doppio backslash: \\d \\w \\. \\d+ ecc.
-  Esempio corretto: "pattern": "^[A-Z]{6}\\d{2}" NON "pattern": "^[A-Z]{6}\d{2}"
+  Esempio corretto: "pattern": "^[A-Z]{6}\\d{2}" NON "pattern": "^[A-Z]{6}\\d{2}"
 - Non troncare mai l'output: il JSON deve essere completo fino alla } finale.
 
 Rispetta la struttura originale delle regole: mantieni le stesse chiavi di primo livello e lo stesso stile.
@@ -529,7 +564,7 @@ async def improve_rules_with_ai(
 
     is_initial_generation = not body.current_rules
     operation_label = "Generazione iniziale" if is_initial_generation else "Rigenerazione"
-    schema_label = schema.name or schema.analyzer_id or str(schema_id)
+    schema_label = schema.analyzer_id or str(schema_id)
     logger.info(f"{operation_label} delle regole di validazione per lo schema '{schema_label}' (ID: {schema_id})")
 
     try:
@@ -565,7 +600,7 @@ async def improve_rules_with_ai(
     )
 
     user_message = (
-        f"Schema documento: {schema.name or schema.analyzer_id}\n\n"
+        f"Schema documento: {schema.analyzer_id}\n\n"
         f"Regole di validazione attuali:\n{current_rules_json}"
         f"{reference_section}\n\n"
         f"Problema / miglioramento richiesto:\n{body.prompt}"

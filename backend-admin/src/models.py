@@ -29,9 +29,9 @@ class Utente(SQLModel, table=True):
 class DocumentTypeBase(SQLModel):
     """Base fields shared between DB and API"""
     label: Optional[str] = Field(default=None, max_length=255, index=True, unique=True)
-    name: Optional[str] = Field(default=None, max_length=255, index=True, unique=True)
     patterns: Optional[str] = Field(default=None, max_length=1000)
     analyzer_id: str = Field(max_length=255)
+    is_man_interesse: bool = Field(default=False)
     validation_rules: Optional[Dict[str, Any]] = Field(default=None)
 
 
@@ -41,9 +41,9 @@ class DocumentType(DocumentTypeBase, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
     label: Optional[str] = Field(default=None, max_length=255, index=True, unique=True)
-    name: Optional[str] = Field(default=None, max_length=255, index=True, unique=True)
     patterns: Optional[str] = Field(default=None, max_length=1000)
     analyzer_id: str = Field(max_length=255)
+    is_man_interesse: bool = Field(default=False)
     validation_rules: Optional[Dict[str, Any]] = Field(
         default=None, sa_column=Column(JSON)
     )
@@ -54,25 +54,26 @@ class DocumentTypeCreate(DocumentTypeBase):
     label: Optional[str] = Field(default=None, max_length=255)
     patterns: Optional[str] = Field(default=None, max_length=1000)
     analyzer_id: str = Field(max_length=255)
+    is_man_interesse: bool = Field(default=False)
     validation_rules: Optional[Dict[str, Any]] = Field(default=None)
 
 
 class DocumentTypeUpdate(SQLModel):
     """Schema for updating a DocumentType"""
     label: Optional[str] = Field(default=None, max_length=255)
-    name: Optional[str] = Field(default=None, max_length=255)
     patterns: Optional[str] = Field(default=None, max_length=1000)
     analyzer_id: Optional[str] = Field(None, max_length=255)
+    is_man_interesse: Optional[bool] = Field(default=None)
     validation_rules: Optional[Dict[str, Any]] = Field(default=None)
 
 
 class DocumentTypeRead(DocumentTypeBase):
     """Schema for reading a DocumentType (API response)"""
     id: int
-    name: Optional[str] = Field(default=None, max_length=255)
     label: Optional[str] = Field(default=None, max_length=255)
     patterns: Optional[str] = Field(default=None, max_length=1000)
     analyzer_id: str = Field(max_length=255)
+    is_man_interesse: bool = Field(default=False)
     validation_rules: Optional[Dict[str, Any]] = Field(default=None)
 
 

@@ -16,9 +16,9 @@ export default function DocumentTypesDashboard() {
     const [deleteTarget, setDeleteTarget] = useState<DocumentType | null>(null);
     const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
     const [newData, setNewData] = useState<DocumentType>({
-        name: "",
         patterns: "",
         analyzer_id: "",
+        is_man_interesse: false,
     });
     const [editing, setEditing] = useState(false);
 
@@ -57,8 +57,8 @@ export default function DocumentTypesDashboard() {
             });
     }, []);
 
-    const handleNewChange = (field: string, value: string) => {
-        setNewData((prev: Record<string, string>) => ({ ...prev, [field]: value }));
+    const handleNewChange = (field: string, value: string | boolean) => {
+        setNewData((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleNewSave = async () => {
@@ -68,9 +68,9 @@ export default function DocumentTypesDashboard() {
             setModal({ message: "Salvataggio completato!", onClose: () => setModal(null) });
             getAllDocumentTypes().then((data) => setDocumentTypes(data.schemas));
             setNewData({
-                name: "",
                 patterns: "",
                 analyzer_id: "",
+                is_man_interesse: false,
             });
             setEditing(false);
         } catch (err) {
@@ -99,17 +99,17 @@ export default function DocumentTypesDashboard() {
                 <div style={{ border: '2px solid #007bff', borderRadius: '8px', padding: 0, backgroundColor: '#f8f9fa', margin: 0, width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', overflowX: 'auto' }}>
                     <table style={{ width: '100%', margin: 0, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                         <colgroup>
+                            <col style={{ width: '35%' }} />
                             <col style={{ width: '20%' }} />
-                            <col style={{ width: '30%' }} />
-                            <col style={{ width: '15%' }} />
-                            <col style={{ width: '15%' }} />
+                            <col style={{ width: '12%' }} />
+                            <col style={{ width: '13%' }} />
                             <col style={{ width: '20%' }} />
                         </colgroup>
                         <thead>
                             <tr style={{ background: '#e9ecef' }}>
-                                <th style={{ textAlign: 'center', padding: '0.75rem' }}>Nome</th>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Analyzer ID</th>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Patterns</th>
+                                <th style={{ textAlign: 'center', padding: '0.75rem' }}>Man. Interesse</th>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Validazione</th>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Actions</th>
                             </tr>
@@ -117,13 +117,19 @@ export default function DocumentTypesDashboard() {
                         <tbody>
                             {documentTypes.map((docType: DocumentType) => (
                                 <tr key={docType._id || docType.id} style={{ borderBottom: '1px solid #dee2e6' }}>
-                                    <td style={{ padding: '0.75rem' }}>{docType.name}</td>
                                     <td style={{ padding: '0.75rem' }}>{docType.analyzer_id}</td>
                                     <td style={{ textAlign: 'center', padding: '0.75rem' }}>
                                         {docType.patterns && docType.patterns.trim() !== '' ? (
                                             <span style={{ color: '#1976d2', fontWeight: 600 }} title={docType.patterns}>✔️</span>
                                         ) : (
                                             <span style={{ color: '#aaa' }} title="Nessun pattern">—</span>
+                                        )}
+                                    </td>
+                                    <td style={{ textAlign: 'center', padding: '0.75rem' }}>
+                                        {docType.is_man_interesse ? (
+                                            <span style={{ color: '#e65c00', fontWeight: 600 }} title="Manifestazione di interesse">✔️</span>
+                                        ) : (
+                                            <span style={{ color: '#aaa' }}>—</span>
                                         )}
                                     </td>
                                     <td style={{ textAlign: 'center', padding: '0.75rem' }}>
@@ -154,14 +160,6 @@ export default function DocumentTypesDashboard() {
                             ))}
                             <tr>
                                 <td style={{ padding: '0.75rem' }}>
-                                    <input
-                                        value={newData.name || ""}
-                                        onInput={(e: JSX.TargetedEvent<HTMLInputElement, Event>) => handleNewChange("name", e.currentTarget.value)}
-                                        placeholder="Nome"
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ced4da' }}
-                                    />
-                                </td>
-                                <td style={{ padding: '0.75rem' }}>
                                     <select
                                         value={newData.analyzer_id || ""}
                                         onChange={(e: JSX.TargetedEvent<HTMLSelectElement, Event>) => handleNewChange("analyzer_id", e.currentTarget.value)}
@@ -183,6 +181,15 @@ export default function DocumentTypesDashboard() {
                                         style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ced4da' }}
                                     />
                                 </td>
+                                <td style={{ textAlign: 'center', padding: '0.75rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={!!newData.is_man_interesse}
+                                        onChange={(e: JSX.TargetedEvent<HTMLInputElement, Event>) => handleNewChange("is_man_interesse", e.currentTarget.checked)}
+                                        title="Manifestazione di interesse"
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                    />
+                                </td>
                                 <td style={{ textAlign: 'center', padding: '0.75rem' }}></td>
                                 <td style={{ padding: '0.75rem' }}>
                                     <button
@@ -202,7 +209,7 @@ export default function DocumentTypesDashboard() {
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ background: '#fff', borderRadius: '8px', boxShadow: '0 2px 12px rgba(0,0,0,0.15)', padding: '2rem', minWidth: '320px', maxWidth: '90vw', textAlign: 'center' }}>
                         <h3>Conferma cancellazione</h3>
-                        <p>Vuoi davvero cancellare il documento <b>{deleteTarget.name}</b>?</p>
+                        <p>Vuoi davvero cancellare il documento <b>{deleteTarget.analyzer_id}</b>?</p>
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
                             <button
                                 style={{ padding: '0.75rem 1.5rem', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1rem', cursor: 'pointer' }}

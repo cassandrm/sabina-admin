@@ -112,16 +112,13 @@ async def validate_json(
     if not schema:
         raise HTTPException(status_code=404, detail=f"Schema con ID {schema_id} non trovato")
 
-    if not schema.name:
-        raise HTTPException(status_code=400, detail="Lo schema non ha un campo 'name' configurato")
-
     # Carica le validation_rules dal file YAML in config/
     import yaml
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config", f"{schema.name}.yaml")
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config", f"{schema.analyzer_id}.yaml")
     logger.info(f"Loading validation rules from: {config_path}")
 
     if not os.path.exists(config_path):
-        raise HTTPException(status_code=404, detail=f"File di configurazione '{schema.name}.yaml' non trovato in config/")
+        raise HTTPException(status_code=404, detail=f"File di configurazione '{schema.analyzer_id}.yaml' non trovato in config/")
 
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
@@ -129,7 +126,7 @@ async def validate_json(
 
         validation_rules_raw = yaml_data.get('validation_rules')
         if not validation_rules_raw:
-            raise HTTPException(status_code=400, detail=f"Il file '{schema.name}.yaml' non contiene validation_rules")
+            raise HTTPException(status_code=400, detail=f"Il file '{schema.analyzer_id}.yaml' non contiene validation_rules")
 
         # validation_rules nel YAML è una stringa JSON, va parsata
         import json as _json

@@ -1,10 +1,10 @@
-name: dichiarazione_cciaa
-
 label_name : Dichiarazione CCIAA
 
 pattern: ALLEGATO 2.1
 
 analyzer_id: dichiarazione_cciaa
+
+is_man_interesse: false
 
 validation_rules: |
   {

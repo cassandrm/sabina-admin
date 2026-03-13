@@ -1,10 +1,10 @@
-name: dichiarazione_soggetti
-
 label_name: Dichiarazione Soggetti
 
 pattern: ALLEGATO B.1
 
 analyzer_id: dichiarazione_soggetti
+
+is_man_interesse: false
 
 validation_rules: |
   {

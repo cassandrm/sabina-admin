@@ -1,10 +1,10 @@
-name: dichiarazione_sostitutiva
-
 label_name : Dichiarazione sostitutiva
 
 pattern: ALLEGATO B, dichiarazione sostitutiva
 
 analyzer_id: dichiarazione_sostitutiva
+
+is_man_interesse: false
 
 validation_rules: |
   {}

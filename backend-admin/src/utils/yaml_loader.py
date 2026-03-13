@@ -38,6 +38,7 @@ class Yaml:
                 analyzer_id = yaml_config.get("analyzer_id")
                 validation_rules = yaml_config.get("validation_rules")
                 label_name = yaml_config.get("label_name")
+                is_man_interesse = bool(yaml_config.get("is_man_interesse", False))
                 
                 # Parse validation_rules if it's a JSON string
                 if isinstance(validation_rules, str):
@@ -57,6 +58,7 @@ class Yaml:
                     name=name,
                     patterns=pattern,
                     analyzer_id=analyzer_id,
+                    is_man_interesse=is_man_interesse,
                     validation_rules=validation_rules,
                 )
                 
