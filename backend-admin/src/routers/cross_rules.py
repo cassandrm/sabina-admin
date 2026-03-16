@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from ..database import get_db
 from .. import security
+from ..services.validation_cross_service import run_cross_checks
 
 router = APIRouter(tags=["cross-rules"])
 logger = logging.getLogger(__name__)
@@ -197,85 +198,10 @@ def validate_cross_checks(
     checks: List[Dict[str, Any]] = body.get("checks", [])
     documents: Dict[str, Any] = body.get("documents", {})
 
-    print("**************************************")
-    print(f"Validating {len(checks)} checks against documents: {list(documents.keys())}")
-    print(f"Checks data: {checks}")
-    print("--------------------------------------")
-    print(f"Documents data: {documents}")
-    print("**************************************")
-    
-
     if not checks:
         raise HTTPException(status_code=400, detail="'checks' è obbligatorio")
     if not documents:
         raise HTTPException(status_code=400, detail="'documents' è obbligatorio")
 
-    def _get_nested(data: Any, path: str) -> Any:
-        keys = path.split(".")
-        value = data
-        for key in keys:
-            if isinstance(value, dict) and key in value:
-                value = value[key]
-            else:
-                return None
-        return value
-
-    def _split_qualified(qualified: str):
-        parts = qualified.split(".", 1)
-        return (parts[0], parts[1]) if len(parts) == 2 else (None, qualified)
-
-    valid_rules = []
-    error_rules = []
-
-    for idx, rule_entry in enumerate(checks):
-        field_q = rule_entry.get("field", "")
-        compare_q = rule_entry.get("compare_with", "")
-        check = rule_entry.get("check", "equals_ignorecase")
-        print(f"Validating check #{idx}: {field_q} {check} {compare_q}")
-        custom_msg = rule_entry.get("message")
-
-        analyzer_a, field_a = _split_qualified(field_q)
-        analyzer_b, field_b = _split_qualified(compare_q)
-
-        data_a = documents.get(analyzer_a, {}) if analyzer_a else {}
-        data_b = documents.get(analyzer_b, {}) if analyzer_b else {}
-        print(f"  Analyzer A: {analyzer_a}, Field A: {field_a}, Value A: {_get_nested(data_a, field_a) if field_a else 'N/A'}")
-        print(f"  Analyzer B: {analyzer_b}, Field B: {field_b}, Value B: {_get_nested(data_b, field_b) if field_b else 'N/A'}")
-
-        value_a = _get_nested(data_a, field_a) if field_a else None
-        value_b = _get_nested(data_b, field_b) if field_b else None
-
-        entry = {
-            "rule_index": idx,
-            "field": field_q,
-            "compare_with": compare_q,
-            "check": check,
-            "value_a": value_a,
-            "value_b": value_b,
-            "label": custom_msg or f"{field_q} == {compare_q}",
-        }
-
-        if check == "equals_ignorecase":
-            if value_a is None and value_b is None:
-                passed = True
-            elif value_a is not None and value_b is not None:
-                passed = str(value_a).strip().lower() == str(value_b).strip().lower()
-            else:
-                passed = False
-        else:
-            passed = value_a == value_b
-
-        if passed:
-            valid_rules.append(entry)
-        else:
-            entry["error"] = custom_msg or (
-                f"Verifica non superata: [{analyzer_a}] {field_a} = «{value_a}» ≠ [{analyzer_b}] {field_b} = «{value_b}»"
-            )
-            error_rules.append(entry)
-
-    return {
-        "valid_rules": valid_rules,
-        "error_rules": error_rules,
-        "is_valid": len(error_rules) == 0,
-    }
+    return run_cross_checks(checks, documents)
 

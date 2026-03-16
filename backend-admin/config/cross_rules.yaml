@@ -30,3 +30,30 @@ rules:
           }
         ]
       }
+
+  - label_name: Cap
+    validation_rules: |
+      {
+        "checks": [
+          {
+            "field": "manifestazione_di_interesse.Azienda.SedeLegale.CAP",
+            "compare_with": "dichiarazione_soggetti.Impresa.SedeLegale.CAP",
+            "check": "equals_ignorecase",
+            "message": "I valori di «Azienda.SedeLegale.CAP» e «Impresa.SedeLegale.CAP» devono corrispondere"
+          }
+        ]
+      }
+
+  - label_name: aa
+    validation_rules: |
+      {
+        "checks": [
+          {
+            "field": "manifestazione_di_interesse.Azienda.SedeLegale.Nazione",
+            "compare_with": "dichiarazione_soggetti.Impresa.SedeLegale.Nazione",
+            "check": "equals_ignorecase",
+            "message": "I valori di «Azienda.SedeLegale.Nazione» e «Impresa.SedeLegale.Nazione» devono corrispondere"
+          }
+        ]
+      }
+

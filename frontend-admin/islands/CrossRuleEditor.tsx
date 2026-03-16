@@ -280,8 +280,8 @@ function DocInputCard({ aid, docLabel, loadedJson, onLoaded, onClear }: DocInput
             </div>
             {loaded ? (
                 <>
-                    <div style={{ fontSize: "0.75rem", fontFamily: "monospace", background: "#fff", border: "1px solid #f0c080", borderRadius: "3px", padding: "0.3rem", maxHeight: "60px", overflowY: "auto", whiteSpace: "pre-wrap", marginBottom: "0.4rem" }}>
-                        {loadedJson!.slice(0, 200)}{loadedJson!.length > 200 ? "…" : ""}
+                    <div style={{ fontSize: "0.75rem", fontFamily: "monospace", background: "#fff", border: "1px solid #f0c080", borderRadius: "3px", padding: "0.3rem", maxHeight: "200px", overflowY: "auto", whiteSpace: "pre-wrap", marginBottom: "0.4rem" }}>
+                        {loadedJson}
                     </div>
                     <button onClick={onClear} style={{ fontSize: "0.75rem", background: "none", border: "1px solid #999", borderRadius: "4px", padding: "0.15rem 0.5rem", cursor: "pointer" }}>🔄 Ricarica</button>
                 </>
