@@ -107,3 +107,5 @@ class UserInfo(SQLModel):
     
     class Config:
         from_attributes = True
+
+

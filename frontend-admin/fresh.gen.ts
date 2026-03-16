@@ -4,18 +4,25 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $api_admin_cross_rules_id_ from "./routes/api/admin/cross-rules/[id].ts";
+import * as $api_admin_cross_rules_id_validate from "./routes/api/admin/cross-rules/[id]/validate.ts";
+import * as $api_admin_cross_rules_fields from "./routes/api/admin/cross-rules/fields.ts";
+import * as $api_admin_cross_rules_index from "./routes/api/admin/cross-rules/index.ts";
+import * as $api_admin_cross_rules_validate from "./routes/api/admin/cross-rules/validate.ts";
 import * as $api_admin_schemas_id_ from "./routes/api/admin/schemas/[id].ts";
-import * as $api_admin_schemas_id_validation_rules from "./routes/api/admin/schemas/[id]/validation-rules.ts";
 import * as $api_admin_schemas_id_improve_rules from "./routes/api/admin/schemas/[id]/improve-rules.ts";
+import * as $api_admin_schemas_id_validation_rules from "./routes/api/admin/schemas/[id]/validation-rules.ts";
 import * as $api_admin_schemas_index from "./routes/api/admin/schemas/index.ts";
-import * as $api_analyzers_index from "./routes/api/analyzers/index.ts";
 import * as $api_analyzers_analyze from "./routes/api/analyzers/analyze.ts";
+import * as $api_analyzers_index from "./routes/api/analyzers/index.ts";
 import * as $api_analyzers_validate from "./routes/api/analyzers/validate.ts";
 import * as $api_auth_login from "./routes/api/auth/login.ts";
 import * as $api_auth_me from "./routes/api/auth/me.ts";
+import * as $cross_rules from "./routes/cross-rules.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $login from "./routes/login.tsx";
 import * as $AuthGuard from "./islands/AuthGuard.tsx";
+import * as $CrossRuleEditor from "./islands/CrossRuleEditor.tsx";
 import * as $DocumentTypesDashboard from "./islands/DocumentTypesDashboard.tsx";
 import * as $LoginForm from "./islands/LoginForm.tsx";
 import * as $LogoutButton from "./islands/LogoutButton.tsx";
@@ -23,29 +30,40 @@ import * as $SchemaEditor from "./islands/SchemaEditor.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
-    routes: {
-        "./routes/_404.tsx": $_404,
-        "./routes/_app.tsx": $_app,
-        "./routes/api/admin/schemas/[id].ts": $api_admin_schemas_id_,
-        "./routes/api/admin/schemas/[id]/validation-rules.ts": $api_admin_schemas_id_validation_rules,
-        "./routes/api/admin/schemas/[id]/improve-rules.ts": $api_admin_schemas_id_improve_rules,
-        "./routes/api/admin/schemas/index.ts": $api_admin_schemas_index,
-        "./routes/api/analyzers/index.ts": $api_analyzers_index,
-        "./routes/api/analyzers/analyze.ts": $api_analyzers_analyze,
-        "./routes/api/analyzers/validate.ts": $api_analyzers_validate,
-        "./routes/api/auth/login.ts": $api_auth_login,
-        "./routes/api/auth/me.ts": $api_auth_me,
-        "./routes/index.tsx": $index,
-        "./routes/login.tsx": $login,
-    },
-    islands: {
-        "./islands/AuthGuard.tsx": $AuthGuard,
-        "./islands/DocumentTypesDashboard.tsx": $DocumentTypesDashboard,
-        "./islands/LoginForm.tsx": $LoginForm,
-        "./islands/LogoutButton.tsx": $LogoutButton,
-        "./islands/SchemaEditor.tsx": $SchemaEditor,
-    },
-    baseUrl: import.meta.url,
+  routes: {
+    "./routes/_404.tsx": $_404,
+    "./routes/_app.tsx": $_app,
+    "./routes/api/admin/cross-rules/[id].ts": $api_admin_cross_rules_id_,
+    "./routes/api/admin/cross-rules/[id]/validate.ts":
+      $api_admin_cross_rules_id_validate,
+    "./routes/api/admin/cross-rules/fields.ts": $api_admin_cross_rules_fields,
+    "./routes/api/admin/cross-rules/index.ts": $api_admin_cross_rules_index,
+    "./routes/api/admin/cross-rules/validate.ts":
+      $api_admin_cross_rules_validate,
+    "./routes/api/admin/schemas/[id].ts": $api_admin_schemas_id_,
+    "./routes/api/admin/schemas/[id]/improve-rules.ts":
+      $api_admin_schemas_id_improve_rules,
+    "./routes/api/admin/schemas/[id]/validation-rules.ts":
+      $api_admin_schemas_id_validation_rules,
+    "./routes/api/admin/schemas/index.ts": $api_admin_schemas_index,
+    "./routes/api/analyzers/analyze.ts": $api_analyzers_analyze,
+    "./routes/api/analyzers/index.ts": $api_analyzers_index,
+    "./routes/api/analyzers/validate.ts": $api_analyzers_validate,
+    "./routes/api/auth/login.ts": $api_auth_login,
+    "./routes/api/auth/me.ts": $api_auth_me,
+    "./routes/cross-rules.tsx": $cross_rules,
+    "./routes/index.tsx": $index,
+    "./routes/login.tsx": $login,
+  },
+  islands: {
+    "./islands/AuthGuard.tsx": $AuthGuard,
+    "./islands/CrossRuleEditor.tsx": $CrossRuleEditor,
+    "./islands/DocumentTypesDashboard.tsx": $DocumentTypesDashboard,
+    "./islands/LoginForm.tsx": $LoginForm,
+    "./islands/LogoutButton.tsx": $LogoutButton,
+    "./islands/SchemaEditor.tsx": $SchemaEditor,
+  },
+  baseUrl: import.meta.url,
 } satisfies Manifest;
 
 export default manifest;

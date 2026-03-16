@@ -39,7 +39,7 @@ def get_db():
 
 def create_tables():
     """Create all database tables"""
-    from .models import DocumentType, Utente
+    from .models import DocumentType, Utente  # noqa: F401 – registers all table metadata
     SQLModel.metadata.create_all(engine)
     logger.info("Database tables created/verified")
     _run_migrations()

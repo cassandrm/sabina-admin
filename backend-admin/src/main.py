@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-from .routers import admin, auth, analyzers
+from .routers import admin, auth, analyzers, cross_rules
 from .database import create_tables, SessionLocal, engine
 from .models import DocumentType, Utente
 from .services.auth_service import AuthService
@@ -59,6 +59,7 @@ app.add_middleware(
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(analyzers.router, prefix="/api", tags=["Analyzers"])
+app.include_router(cross_rules.router, prefix="/admin", tags=["Cross Rules"])
 
 
 # Startup initialization (synchronous, runs before app starts)

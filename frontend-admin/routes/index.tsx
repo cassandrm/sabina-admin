@@ -13,7 +13,23 @@ export default function AdminPage() {
                 <div class="admin-container">
                     <header class="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h1>Document Types Management</h1>
-                        <LogoutButton />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <a
+                                href="/cross-rules"
+                                style={{
+                                    padding: '0.5rem 1.1rem',
+                                    background: '#6f42c1',
+                                    color: '#fff',
+                                    borderRadius: '6px',
+                                    textDecoration: 'none',
+                                    fontWeight: 600,
+                                    fontSize: '0.9rem',
+                                }}
+                            >
+                                🔗 Regole Cross-Documento
+                            </a>
+                            <LogoutButton />
+                        </div>
                     </header>
                     <main class="admin-content">
                         <DocumentTypesDashboard />

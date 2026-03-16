@@ -1,0 +1,32 @@
+rules:
+  - label_name: Regola cross
+    validation_rules: |
+      {
+        "checks": [
+          {
+            "field": "manifestazione_di_interesse.Azienda.CodiceFiscale",
+            "compare_with": "dichiarazione_soggetti.Impresa.CodiceFiscale",
+            "check": "equals_ignorecase",
+            "message": "I codici fiscali devono essere uguali in entrambi i documenti"
+          },
+          {
+            "field": "manifestazione_di_interesse.Azienda.SedeLegale.CAP",
+            "compare_with": "dichiarazione_soggetti.Impresa.SedeLegale.CAP",
+            "check": "equals_ignorecase",
+            "message": "I valori di «Azienda.SedeLegale.CAP» e «Impresa.SedeLegale.CAP» devono corrispondere"
+          }
+        ]
+      }
+
+  - label_name: Telefono
+    validation_rules: |
+      {
+        "checks": [
+          {
+            "field": "manifestazione_di_interesse.Azienda.Contatti.Telefono",
+            "compare_with": "dichiarazione_soggetti.Impresa.Contatti.Telefono",
+            "check": "equals_ignorecase",
+            "message": "I valori di «Azienda.Contatti.Telefono» e «Impresa.Contatti.Telefono» devono corrispondere"
+          }
+        ]
+      }

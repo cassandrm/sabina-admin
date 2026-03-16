@@ -47,6 +47,14 @@ services:
       - "8001:8000"
     environment:
       - BACKEND_URL=http://backend-admin:8002
+    volumes:
+      - ./frontend-admin/routes:/app/routes
+      - ./frontend-admin/islands:/app/islands
+      - ./frontend-admin/utils:/app/utils
+      - ./frontend-admin/static:/app/static
+      - ./frontend-admin/fresh.gen.ts:/app/fresh.gen.ts
+      - ./frontend-admin/fresh.config.ts:/app/fresh.config.ts
+    command: ["run", "-A", "--watch", "dev.ts"]
     depends_on:
       backend-admin:
         condition: service_healthy

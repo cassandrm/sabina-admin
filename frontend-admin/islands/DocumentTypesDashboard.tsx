@@ -99,17 +99,15 @@ export default function DocumentTypesDashboard() {
                 <div style={{ border: '2px solid #007bff', borderRadius: '8px', padding: 0, backgroundColor: '#f8f9fa', margin: 0, width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', overflowX: 'auto' }}>
                     <table style={{ width: '100%', margin: 0, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                         <colgroup>
-                            <col style={{ width: '35%' }} />
+                            <col style={{ width: '45%' }} />
                             <col style={{ width: '20%' }} />
-                            <col style={{ width: '12%' }} />
-                            <col style={{ width: '13%' }} />
+                            <col style={{ width: '15%' }} />
                             <col style={{ width: '20%' }} />
                         </colgroup>
                         <thead>
                             <tr style={{ background: '#e9ecef' }}>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Analyzer ID</th>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Patterns</th>
-                                <th style={{ textAlign: 'center', padding: '0.75rem' }}>Man. Interesse</th>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Validazione</th>
                                 <th style={{ textAlign: 'center', padding: '0.75rem' }}>Actions</th>
                             </tr>
@@ -117,17 +115,19 @@ export default function DocumentTypesDashboard() {
                         <tbody>
                             {documentTypes.map((docType: DocumentType) => (
                                 <tr key={docType._id || docType.id} style={{ borderBottom: '1px solid #dee2e6' }}>
-                                    <td style={{ padding: '0.75rem' }}>{docType.analyzer_id}</td>
-                                    <td style={{ textAlign: 'center', padding: '0.75rem' }}>
-                                        {docType.patterns && docType.patterns.trim() !== '' ? (
-                                            <span style={{ color: '#1976d2', fontWeight: 600 }} title={docType.patterns}>✔️</span>
-                                        ) : (
-                                            <span style={{ color: '#aaa' }} title="Nessun pattern">—</span>
-                                        )}
+                                    <td style={{ padding: '0.75rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                            <span>{docType.analyzer_id}</span>
+                                            {docType.is_man_interesse && (
+                                                <span style={{ background: '#ffc107', color: '#333', fontWeight: 600, fontSize: '0.75rem', padding: '0.15rem 0.6rem', borderRadius: '12px', whiteSpace: 'nowrap' }}>
+                                                    manifestazione di interesse
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td style={{ textAlign: 'center', padding: '0.75rem' }}>
-                                        {docType.is_man_interesse ? (
-                                            <span style={{ color: '#e65c00', fontWeight: 600 }} title="Manifestazione di interesse">✔️</span>
+                                        {docType.patterns && docType.patterns.trim() !== '' ? (
+                                            <span style={{ color: '#555', fontSize: '0.85rem' }}>{docType.patterns}</span>
                                         ) : (
                                             <span style={{ color: '#aaa' }}>—</span>
                                         )}
@@ -179,15 +179,6 @@ export default function DocumentTypesDashboard() {
                                         onInput={(e: JSX.TargetedEvent<HTMLInputElement, Event>) => handleNewChange("patterns", e.currentTarget.value)}
                                         placeholder="Patterns"
                                         style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ced4da' }}
-                                    />
-                                </td>
-                                <td style={{ textAlign: 'center', padding: '0.75rem' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={!!newData.is_man_interesse}
-                                        onChange={(e: JSX.TargetedEvent<HTMLInputElement, Event>) => handleNewChange("is_man_interesse", e.currentTarget.checked)}
-                                        title="Manifestazione di interesse"
-                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                                     />
                                 </td>
                                 <td style={{ textAlign: 'center', padding: '0.75rem' }}></td>
