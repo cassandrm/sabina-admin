@@ -345,8 +345,7 @@ async def create_schema(
                     content = content.rstrip("\n") + f"\n\nis_man_interesse: {new_val}\n"
                 # Aggiorna validation_rules
                 pattern = r'(validation_rules:\s*\|)\n((?:[ \t]+.*\n?)*)'
-                replacement = r'\1\n' + indented_json + '\n'
-                new_content = re.sub(pattern, replacement, content)
+                new_content = re.sub(pattern, lambda m: m.group(1) + '\n' + indented_json + '\n', content)
                 if new_content == content:
                     # Sezione non trovata: appendila
                     new_content = content.rstrip("\n") + f"\n\nvalidation_rules: |\n{indented_json}\n"
@@ -499,8 +498,7 @@ def save_validation_rules_to_file(
         pattern = r'(validation_rules:\s*\|)\n((?:[ \t]+.*\n?)*)'
         # Indenta ogni riga del JSON con 2 spazi per il blocco YAML
         indented_json = '\n'.join('  ' + line for line in validation_rules_json.split('\n'))
-        replacement = r'\1\n' + indented_json + '\n'
-        new_content = re.sub(pattern, replacement, content)
+        new_content = re.sub(pattern, lambda m: m.group(1) + '\n' + indented_json + '\n', content)
 
         with open(config_path, 'w', encoding='utf-8') as f:
             f.write(new_content)

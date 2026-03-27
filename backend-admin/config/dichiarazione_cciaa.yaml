@@ -8,493 +8,860 @@ is_man_interesse: false
 
 validation_rules: |
   {
-  "rules": [
-    {
-      "field": "Documento.Titolo",
-      "required": true,
-      "maxLength": 500,
-      "minLength": 5,
-      "label_field": "Titolo del documento",
-      "requiredMessage": "Il titolo del documento è obbligatorio"
-    },
-    {
-      "field": "Documento.Oggetto",
-      "required": true,
-      "maxLength": 1000,
-      "minLength": 10,
-      "label_field": "Oggetto della manifestazione di interesse",
-      "requiredMessage": "L'oggetto della manifestazione di interesse è obbligatorio"
-    },
-    {
-      "field": "Sottoscrittore.NomeCognome",
-      "pattern": "^[A-Za-zÀ-ÿ\\s''-]+\\s+[A-Za-zÀ-ÿ\\s''-]+$",
-      "required": true,
-      "maxLength": 100,
-      "minLength": 3,
-      "label_field": "Nome e cognome del sottoscrittore",
-      "formatMessage": "Il formato del nome e cognome non è valido. Inserire nome e cognome separati da spazio",
-      "requiredMessage": "Il nome e cognome del sottoscrittore sono obbligatori"
-    },
-    {
-      "field": "Sottoscrittore.LuogoNascita",
-      "pattern": "^[A-Za-zÀ-ÿ\\s''-]+$",
-      "required": true,
-      "maxLength": 100,
-      "minLength": 2,
-      "label_field": "Luogo di nascita del sottoscrittore",
-      "formatMessage": "Il luogo di nascita deve contenere solo lettere e spazi",
-      "requiredMessage": "Il luogo di nascita del sottoscrittore è obbligatorio"
-    },
-    {
-      "field": "Sottoscrittore.ProvinciaNascita",
-      "pattern": "^[A-Z]{2}$",
-      "required": true,
-      "maxLength": 2,
-      "minLength": 2,
-      "label_field": "Provincia di nascita del sottoscrittore",
-      "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere maiuscole (es. RM, MI)",
-      "requiredMessage": "La provincia di nascita del sottoscrittore è obbligatoria"
-    },
-    {
-      "field": "Sottoscrittore.DataNascita",
-      "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
-      "required": true,
-      "label_field": "Data di nascita del sottoscrittore",
-      "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA",
-      "requiredMessage": "La data di nascita del sottoscrittore è obbligatoria"
-    },
-    {
-      "enum": [
-        "Legale rappresentante",
-        "Amministratore delegato",
-        "Amministratore unico",
-        "Presidente del CdA",
-        "Procuratore",
-        "Procuratore speciale",
-        "Procuratore generale",
-        "Titolare",
-        "Socio amministratore",
-        "Direttore generale",
-        "Institore"
-      ],
-      "field": "Sottoscrittore.Qualifica",
-      "required": true,
-      "label_field": "Qualifica del sottoscrittore",
-      "requiredMessage": "La qualifica del sottoscrittore è obbligatoria"
-    },
-    {
-      "field": "Sottoscrittore.EstremiProcura",
-      "required": false,
-      "maxLength": 500,
-      "minLength": 5,
-      "requiredIf": {
+    "rules": [
+      {
+        "field": "Allegato",
+        "label_field": "Allegato",
+        "required": false,
+        "pattern": "^(Allegato\\s*[A-Za-z0-9]+)?$",
+        "formatMessage": "Il formato dell'allegato non è valido (es. Allegato A, Allegato B)"
+      },
+      {
+        "field": "Titolo",
+        "label_field": "Titolo del documento",
+        "required": true,
+        "requiredMessage": "Il titolo del documento è obbligatorio",
+        "minLength": 5,
+        "maxLength": 500
+      },
+      {
+        "field": "Oggetto",
+        "label_field": "Oggetto della gara/procedura",
+        "required": false,
+        "minLength": 10,
+        "maxLength": 1000
+      },
+      {
+        "field": "Sottoscrittore.NomeCognome",
+        "label_field": "Nome e Cognome del sottoscrittore",
+        "required": true,
+        "requiredMessage": "Il nome e cognome del sottoscrittore è obbligatorio",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "Sottoscrittore.DataNascita",
+        "label_field": "Data di nascita del sottoscrittore",
+        "required": true,
+        "requiredMessage": "La data di nascita del sottoscrittore è obbligatoria",
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA"
+      },
+      {
+        "field": "Sottoscrittore.LuogoNascita",
+        "label_field": "Luogo di nascita del sottoscrittore",
+        "required": true,
+        "requiredMessage": "Il luogo di nascita del sottoscrittore è obbligatorio",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "Sottoscrittore.ProvinciaNascita",
+        "label_field": "Provincia di nascita del sottoscrittore",
+        "required": false,
+        "pattern": "^[A-Za-z]{2}$",
+        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere"
+      },
+      {
         "field": "Sottoscrittore.Qualifica",
-        "value": "Procuratore",
-        "operator": "contains"
-      },
-      "label_field": "Estremi della procura",
-      "requiredMessage": "Gli estremi della procura sono obbligatori quando il sottoscrittore agisce come procuratore"
-    },
-    {
-      "field": "Azienda.RagioneSociale",
-      "required": true,
-      "maxLength": 200,
-      "minLength": 2,
-      "label_field": "Ragione sociale dell'azienda",
-      "requiredMessage": "La ragione sociale dell'azienda è obbligatoria"
-    },
-    {
-      "field": "Azienda.CodiceFiscale",
-      "pattern": "^[A-Z0-9]{11,16}$",
-      "required": true,
-      "label_field": "Codice fiscale dell'azienda",
-      "formatMessage": "Il codice fiscale deve contenere da 11 a 16 caratteri alfanumerici",
-      "requiredMessage": "Il codice fiscale dell'azienda è obbligatorio"
-    },
-    {
-      "field": "Azienda.PartitaIva",
-      "pattern": "^\\d{11}$",
-      "required": true,
-      "label_field": "Partita IVA dell'azienda",
-      "formatMessage": "La partita IVA deve contenere esattamente 11 cifre numeriche",
-      "requiredMessage": "La partita IVA dell'azienda è obbligatoria"
-    },
-    {
-      "field": "Azienda.PartitaIvaGruppo",
-      "pattern": "^\\d{11}$",
-      "required": false,
-      "label_field": "Partita IVA del gruppo",
-      "formatMessage": "La partita IVA del gruppo deve contenere esattamente 11 cifre numeriche"
-    },
-    {
-      "field": "Azienda.SedeLegale.Indirizzo",
-      "required": true,
-      "maxLength": 200,
-      "minLength": 5,
-      "label_field": "Indirizzo della sede legale",
-      "requiredMessage": "L'indirizzo della sede legale è obbligatorio"
-    },
-    {
-      "field": "Azienda.SedeLegale.Citta",
-      "pattern": "^[A-Za-zÀ-ÿ\\s''-]+$",
-      "required": true,
-      "maxLength": 100,
-      "minLength": 2,
-      "label_field": "Città della sede legale",
-      "formatMessage": "La città deve contenere solo lettere e spazi",
-      "requiredMessage": "La città della sede legale è obbligatoria"
-    },
-    {
-      "field": "Azienda.SedeLegale.Provincia",
-      "pattern": "^[A-Z]{2}$",
-      "required": true,
-      "label_field": "Provincia della sede legale",
-      "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere maiuscole (es. RM, MI)",
-      "requiredMessage": "La provincia della sede legale è obbligatoria"
-    },
-    {
-      "field": "Azienda.SedeLegale.CAP",
-      "pattern": "^\\d{5}$",
-      "required": true,
-      "label_field": "CAP della sede legale",
-      "formatMessage": "Il CAP deve contenere esattamente 5 cifre numeriche",
-      "requiredMessage": "Il CAP della sede legale è obbligatorio"
-    },
-    {
-      "field": "Azienda.Contatti.Telefono",
-      "pattern": "^[\\d\\s\\+\\-\\/\\.]{6,20}$",
-      "required": false,
-      "label_field": "Telefono dell'azienda",
-      "formatMessage": "Il numero di telefono deve contenere da 6 a 20 caratteri tra cifre, spazi e simboli (+, -, /, .)"
-    },
-    {
-      "field": "Azienda.Contatti.Email",
-      "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
-      "required": false,
-      "label_field": "Email dell'azienda",
-      "formatMessage": "L'indirizzo email non è in un formato valido"
-    },
-    {
-      "field": "Azienda.Contatti.PEC",
-      "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
-      "required": true,
-      "label_field": "PEC dell'azienda",
-      "formatMessage": "L'indirizzo PEC non è in un formato valido",
-      "requiredMessage": "L'indirizzo PEC dell'azienda è obbligatorio"
-    },
-    {
-      "enum": [
-        "SI",
-        ""
-      ],
-      "field": "ManifestazioneInteresse.Lotti.Lotto1",
-      "required": false,
-      "label_field": "Lotto 1",
-      "formatMessage": "Il valore per il Lotto 1 deve essere 'SI' o vuoto"
-    },
-    {
-      "enum": [
-        "SI",
-        ""
-      ],
-      "field": "ManifestazioneInteresse.Lotti.Lotto2",
-      "required": false,
-      "label_field": "Lotto 2",
-      "formatMessage": "Il valore per il Lotto 2 deve essere 'SI' o vuoto"
-    },
-    {
-      "enum": [
-        "SI",
-        ""
-      ],
-      "field": "ManifestazioneInteresse.Lotti.Lotto3",
-      "required": false,
-      "label_field": "Lotto 3",
-      "formatMessage": "Il valore per il Lotto 3 deve essere 'SI' o vuoto"
-    },
-    {
-      "enum": [
-        "SI",
-        ""
-      ],
-      "field": "ManifestazioneInteresse.Lotti.Lotto4",
-      "required": false,
-      "label_field": "Lotto 4",
-      "formatMessage": "Il valore per il Lotto 4 deve essere 'SI' o vuoto"
-    },
-    {
-      "enum": [
-        "Microimpresa",
-        "Piccola impresa",
-        "Media impresa",
-        "Grande impresa",
-        "Libero professionista",
-        "Studio associato"
-      ],
-      "field": "ManifestazioneInteresse.ModalitaPartecipazione.ImpresaSingola.Tipologia",
-      "required": false,
-      "label_field": "Tipologia impresa singola",
-      "formatMessage": "La tipologia di impresa singola non è tra i valori ammessi"
-    },
-    {
-      "enum": [
-        "RTI Costituito",
-        "RTI Costituendo",
-        "RTP Costituito",
-        "RTP Costituendo"
-      ],
-      "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
-      "required": false,
-      "label_field": "Tipologia RTI/RTP",
-      "formatMessage": "La tipologia di raggruppamento temporaneo deve essere: RTI Costituito, RTI Costituendo, RTP Costituito o RTP Costituendo"
-    },
-    {
-      "enum": [
-        "Mandataria",
-        "Mandante"
-      ],
-      "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.Ruolo",
-      "required": false,
-      "requiredIf": {
-        "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
-        "value": "",
-        "operator": "!="
-      },
-      "label_field": "Ruolo nel raggruppamento temporaneo",
-      "formatMessage": "Il ruolo nel raggruppamento deve essere 'Mandataria' o 'Mandante'",
-      "requiredMessage": "Il ruolo nel raggruppamento temporaneo è obbligatorio quando si partecipa in RTI/RTP"
-    },
-    {
-      "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.RagioneSocialeMandataria",
-      "required": false,
-      "maxLength": 200,
-      "minLength": 2,
-      "requiredIf": {
-        "field": "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
-        "value": "",
-        "operator": "!="
-      },
-      "label_field": "Ragione sociale Mandataria/Mandante",
-      "requiredMessage": "La ragione sociale della Mandataria/Mandante è obbligatoria quando si partecipa in RTI/RTP"
-    },
-    {
-      "enum": [
-        "Consorzio Stabile",
-        "Consorzio Ordinario Costituito",
-        "Consorzio Ordinario Costituendo",
-        "Consorzio di Cooperative di produzione e lavoro"
-      ],
-      "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
-      "required": false,
-      "label_field": "Tipologia di consorzio",
-      "formatMessage": "La tipologia di consorzio non è tra i valori ammessi"
-    },
-    {
-      "enum": [
-        "Consorzio",
-        "Consorziata esecutrice"
-      ],
-      "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.Ruolo",
-      "required": false,
-      "requiredIf": {
-        "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
-        "value": "",
-        "operator": "!="
-      },
-      "label_field": "Ruolo nel consorzio",
-      "formatMessage": "Il ruolo nel consorzio deve essere 'Consorzio' o 'Consorziata esecutrice'",
-      "requiredMessage": "Il ruolo nel consorzio è obbligatorio quando si partecipa tramite consorzio"
-    },
-    {
-      "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.RagioneSocialeConsorzio",
-      "required": false,
-      "maxLength": 200,
-      "minLength": 2,
-      "requiredIf": {
-        "field": "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.Ruolo",
-        "value": "Consorziata esecutrice",
-        "operator": "=="
-      },
-      "label_field": "Ragione sociale del consorzio",
-      "requiredMessage": "La ragione sociale del consorzio è obbligatoria quando si partecipa come consorziata esecutrice"
-    },
-    {
-      "field": "ManifestazioneInteresse.ModalitaPartecipazione.Altro.Specificare",
-      "required": false,
-      "maxLength": 500,
-      "minLength": 5,
-      "label_field": "Altra modalità di partecipazione"
-    },
-    {
-      "field": "Firma.LuogoEData",
-      "pattern": "^[A-Za-zÀ-ÿ\\s''-]+,?\\s*\\d{1,2}[/\\-\\.]\\d{1,2}[/\\-\\.]\\d{2,4}$|^[A-Za-zÀ-ÿ\\s''-]+,?\\s*\\d{1,2}\\s+[A-Za-zÀ-ÿ]+\\s+\\d{2,4}$",
-      "required": true,
-      "label_field": "Luogo e data di sottoscrizione",
-      "formatMessage": "Il formato deve essere 'Luogo, GG/MM/AAAA' o 'Luogo, GG mese AAAA'",
-      "requiredMessage": "Il luogo e la data di sottoscrizione sono obbligatori"
-    },
-    {
-      "enum": [
-        "Firma digitale",
-        "Firma elettronica qualificata",
-        "Firma elettronica avanzata",
-        "Documento firmato digitalmente",
-        "SI",
-        ""
-      ],
-      "field": "Firma.SottoscrizioneDigitale",
-      "required": false,
-      "label_field": "Sottoscrizione digitale"
-    }
-  ],
-  "crossFieldRules": [
-    {
-      "rules": [
-        "Almeno uno tra Lotto 1, Lotto 2, Lotto 3 o Lotto 4 deve essere selezionato con valore 'SI'",
-        "I campi con placeholder o valori vuoti vengono ignorati nella validazione"
-      ],
-      "message": "Deve essere selezionato almeno un lotto per la manifestazione di interesse",
-      "condition": {
-        "anyOf": [
-          "ManifestazioneInteresse.Lotti.Lotto1",
-          "ManifestazioneInteresse.Lotti.Lotto2",
-          "ManifestazioneInteresse.Lotti.Lotto3",
-          "ManifestazioneInteresse.Lotti.Lotto4"
+        "label_field": "Qualifica del sottoscrittore",
+        "required": true,
+        "requiredMessage": "La qualifica del sottoscrittore è obbligatoria",
+        "enum": [
+          "Procuratore",
+          "Amministratore delegato",
+          "Presidente del CdA",
+          "Amministratore unico",
+          "Titolare di impresa individuale",
+          "Socio amministratore",
+          "Socio accomandatario",
+          "Consigliere",
+          "Membro del Comitato esecutivo",
+          "Institore/Direttore generale"
         ]
       },
-      "checkValue": "SI",
-      "ignoreEmptyAndPlaceholders": true
-    },
-    {
-      "rules": [
-        "Se viene compilato un campo dell'indirizzo della sede legale, devono essere compilati tutti",
-        "Indirizzo, Città, Provincia e CAP sono tutti obbligatori per la sede legale"
-      ],
-      "message": "L'indirizzo della sede legale deve essere completo di tutti i campi: indirizzo, città, provincia e CAP",
-      "condition": {
-        "allOf": [
-          "Azienda.SedeLegale.Indirizzo",
-          "Azienda.SedeLegale.Citta",
-          "Azienda.SedeLegale.Provincia",
-          "Azienda.SedeLegale.CAP"
+      {
+        "field": "Sottoscrittore.EstremiProcura",
+        "label_field": "Estremi della procura",
+        "required": false,
+        "requiredIf": {
+          "field": "Sottoscrittore.Qualifica",
+          "operator": "==",
+          "value": "Procuratore"
+        },
+        "requiredMessage": "Gli estremi della procura sono obbligatori per i procuratori",
+        "minLength": 5,
+        "maxLength": 200
+      },
+      {
+        "field": "Azienda.RagioneSociale",
+        "label_field": "Ragione Sociale dell'azienda",
+        "required": true,
+        "requiredMessage": "La ragione sociale dell'azienda è obbligatoria",
+        "minLength": 2,
+        "maxLength": 200
+      },
+      {
+        "field": "Azienda.FormaGiuridicaImpresa",
+        "label_field": "Forma Giuridica dell'Impresa",
+        "required": true,
+        "requiredMessage": "La forma giuridica dell'impresa è obbligatoria",
+        "enum": [
+          "Impresa Individuale",
+          "Società in nome collettivo",
+          "Società in accomandita semplice",
+          "Società a responsabilità limitata",
+          "Società per Azioni",
+          "Società cooperative",
+          "Altro"
         ]
       },
-      "ignoreEmptyAndPlaceholders": true
-    },
-    {
-      "rules": [
-        "Le modalità di partecipazione sono mutuamente esclusive",
-        "Non è possibile partecipare contemporaneamente come impresa singola e in raggruppamento",
-        "Non è possibile partecipare contemporaneamente come impresa singola e tramite consorzio",
-        "Non è possibile partecipare contemporaneamente in raggruppamento e tramite consorzio",
-        "Se si seleziona 'Altro', non devono essere compilate le altre modalità"
-      ],
-      "message": "Deve essere selezionata una sola modalità di partecipazione tra: Impresa Singola, Raggruppamento Temporaneo, Consorzio o Altro",
-      "condition": {
-        "mutuallyExclusive": [
-          "ManifestazioneInteresse.ModalitaPartecipazione.ImpresaSingola.Tipologia",
-          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
-          "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
-          "ManifestazioneInteresse.ModalitaPartecipazione.Altro.Specificare"
+      {
+        "field": "Azienda.FormaGiuridicaImpresaAltro",
+        "label_field": "Altra forma giuridica",
+        "required": false,
+        "requiredIf": {
+          "field": "Azienda.FormaGiuridicaImpresa",
+          "operator": "==",
+          "value": "Altro"
+        },
+        "requiredMessage": "Specificare la forma giuridica se selezionato 'Altro'",
+        "displayOnlyIf": {
+          "field": "Azienda.FormaGiuridicaImpresa",
+          "operator": "==",
+          "value": "Altro"
+        },
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "Azienda.CodiceFiscale",
+        "label_field": "Codice Fiscale dell'azienda",
+        "required": true,
+        "requiredMessage": "Il codice fiscale dell'azienda è obbligatorio",
+        "pattern": "^[A-Za-z0-9]{11,16}$",
+        "formatMessage": "Il codice fiscale deve contenere da 11 a 16 caratteri alfanumerici"
+      },
+      {
+        "field": "Azienda.PartitaIva",
+        "label_field": "Partita IVA dell'azienda",
+        "required": true,
+        "requiredMessage": "La partita IVA dell'azienda è obbligatoria",
+        "pattern": "^\\d{11}$",
+        "formatMessage": "La partita IVA deve contenere esattamente 11 cifre"
+      },
+      {
+        "field": "Azienda.PartitaIvaGruppo",
+        "label_field": "Partita IVA di Gruppo",
+        "required": false,
+        "pattern": "^\\d{11}$",
+        "formatMessage": "La partita IVA di gruppo deve contenere esattamente 11 cifre"
+      },
+      {
+        "field": "Azienda.SedeLegale.Nazione",
+        "label_field": "Nazione della sede legale",
+        "required": true,
+        "requiredMessage": "La nazione della sede legale è obbligatoria",
+        "minLength": 2,
+        "maxLength": 50
+      },
+      {
+        "field": "Azienda.SedeLegale.Indirizzo",
+        "label_field": "Indirizzo della sede legale",
+        "required": true,
+        "requiredMessage": "L'indirizzo della sede legale è obbligatorio",
+        "minLength": 5,
+        "maxLength": 200
+      },
+      {
+        "field": "Azienda.SedeLegale.Citta",
+        "label_field": "Città della sede legale",
+        "required": true,
+        "requiredMessage": "La città della sede legale è obbligatoria",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "Azienda.SedeLegale.Provincia",
+        "label_field": "Provincia della sede legale",
+        "required": true,
+        "requiredMessage": "La provincia della sede legale è obbligatoria",
+        "pattern": "^[A-Za-z]{2}$",
+        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere"
+      },
+      {
+        "field": "Azienda.SedeLegale.CAP",
+        "label_field": "CAP della sede legale",
+        "required": true,
+        "requiredMessage": "Il CAP della sede legale è obbligatorio",
+        "pattern": "^\\d{5}$",
+        "formatMessage": "Il CAP deve contenere esattamente 5 cifre"
+      },
+      {
+        "field": "Azienda.Contatti.Telefono",
+        "label_field": "Telefono dell'azienda",
+        "required": false,
+        "pattern": "^[\\+]?[\\d\\s\\-\\/]{6,20}$",
+        "formatMessage": "Il numero di telefono non è in un formato valido"
+      },
+      {
+        "field": "Azienda.Contatti.Email",
+        "label_field": "Email dell'azienda",
+        "required": false,
+        "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
+        "formatMessage": "L'indirizzo email non è in un formato valido"
+      },
+      {
+        "field": "Azienda.Contatti.PEC",
+        "label_field": "PEC dell'azienda",
+        "required": false,
+        "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
+        "formatMessage": "L'indirizzo PEC non è in un formato valido"
+      },
+      {
+        "field": "IscrizioneRegistroImprese.CameraDiCommercio",
+        "label_field": "Camera di Commercio",
+        "required": true,
+        "requiredMessage": "La Camera di Commercio di iscrizione è obbligatoria",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "IscrizioneRegistroImprese.NumeroIscrizione",
+        "label_field": "Numero di iscrizione al Registro Imprese",
+        "required": true,
+        "requiredMessage": "Il numero di iscrizione al Registro Imprese è obbligatorio",
+        "minLength": 1,
+        "maxLength": 50
+      },
+      {
+        "field": "IscrizioneRegistroImprese.DataIscrizione",
+        "label_field": "Data di iscrizione al Registro Imprese",
+        "required": true,
+        "requiredMessage": "La data di iscrizione al Registro Imprese è obbligatoria",
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di iscrizione deve essere nel formato GG/MM/AAAA"
+      },
+      {
+        "field": "IscrizioneRegistroImprese.DurataDataTermine",
+        "label_field": "Durata/Data termine società",
+        "required": false,
+        "maxLength": 100
+      },
+      {
+        "field": "IscrizioneRegistroImprese.CodiceAttivita",
+        "label_field": "Codice Attività ATECO",
+        "required": false,
+        "pattern": "^[0-9]{2}(\\.[0-9]{2})?(\\.[0-9]{1,2})?$",
+        "formatMessage": "Il codice ATECO deve essere nel formato corretto (es. 41.20.00)"
+      },
+      {
+        "field": "IscrizioneRegistroImprese.CapitaleSociale",
+        "label_field": "Capitale Sociale",
+        "required": false,
+        "maxLength": 50
+      },
+      {
+        "field": "OggettoSociale",
+        "label_field": "Oggetto Sociale",
+        "required": false,
+        "minLength": 10,
+        "maxLength": 5000
+      },
+      {
+        "field": "SediSecondarieUnitaLocali",
+        "label_field": "Sedi secondarie e unità locali",
+        "required": false,
+        "maxLength": 2000
+      },
+      {
+        "field": "TitolariCaricheQualifiche[].CognomeNome",
+        "label_field": "Cognome e Nome del titolare di carica",
+        "required": true,
+        "requiredMessage": "Il cognome e nome del titolare di carica è obbligatorio",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "TitolariCaricheQualifiche[].CodiceFiscale",
+        "label_field": "Codice Fiscale del titolare di carica",
+        "required": true,
+        "requiredMessage": "Il codice fiscale del titolare di carica è obbligatorio",
+        "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
+        "formatMessage": "Il codice fiscale non è in un formato valido"
+      },
+      {
+        "field": "TitolariCaricheQualifiche[].Qualifica",
+        "label_field": "Qualifica del titolare di carica",
+        "required": true,
+        "requiredMessage": "La qualifica del titolare di carica è obbligatoria",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "TitolariCaricheQualifiche[].LuogoNascita",
+        "label_field": "Luogo di nascita del titolare di carica",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "TitolariCaricheQualifiche[].DataNascita",
+        "label_field": "Data di nascita del titolare di carica",
+        "required": false,
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA"
+      },
+      {
+        "field": "TitolariCaricheQualifiche[].Residenza.Nazione",
+        "label_field": "Nazione di residenza del titolare di carica",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 50
+      },
+      {
+        "field": "TitolariCaricheQualifiche[].Residenza.Provincia",
+        "label_field": "Provincia di residenza del titolare di carica",
+        "required": false,
+        "pattern": "^[A-Za-z]{2}$",
+        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere"
+      },
+      {
+        "field": "TitolariCaricheQualifiche[].Residenza.Comune",
+        "label_field": "Comune di residenza del titolare di carica",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "ProcuratoriGeneraliSpeciali[].CognomeNome",
+        "label_field": "Cognome e Nome del procuratore",
+        "required": true,
+        "requiredMessage": "Il cognome e nome del procuratore è obbligatorio",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "ProcuratoriGeneraliSpeciali[].CodiceFiscale",
+        "label_field": "Codice Fiscale del procuratore",
+        "required": true,
+        "requiredMessage": "Il codice fiscale del procuratore è obbligatorio",
+        "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
+        "formatMessage": "Il codice fiscale non è in un formato valido"
+      },
+      {
+        "field": "ProcuratoriGeneraliSpeciali[].Qualifica",
+        "label_field": "Tipo di procura",
+        "required": true,
+        "requiredMessage": "Il tipo di procura è obbligatorio",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "ProcuratoriGeneraliSpeciali[].LuogoNascita",
+        "label_field": "Luogo di nascita del procuratore",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "ProcuratoriGeneraliSpeciali[].DataNascita",
+        "label_field": "Data di nascita del procuratore",
+        "required": false,
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA"
+      },
+      {
+        "field": "ProcuratoriGeneraliSpeciali[].Residenza.Nazione",
+        "label_field": "Nazione di residenza del procuratore",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 50
+      },
+      {
+        "field": "ProcuratoriGeneraliSpeciali[].Residenza.Provincia",
+        "label_field": "Provincia di residenza del procuratore",
+        "required": false,
+        "pattern": "^[A-Za-z]{2}$",
+        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere"
+      },
+      {
+        "field": "ProcuratoriGeneraliSpeciali[].Residenza.Comune",
+        "label_field": "Comune di residenza del procuratore",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "CollegioSindacale[].CognomeNome",
+        "label_field": "Cognome e Nome del sindaco",
+        "required": true,
+        "requiredMessage": "Il cognome e nome del sindaco è obbligatorio",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "CollegioSindacale[].CodiceFiscale",
+        "label_field": "Codice Fiscale del sindaco",
+        "required": true,
+        "requiredMessage": "Il codice fiscale del sindaco è obbligatorio",
+        "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
+        "formatMessage": "Il codice fiscale non è in un formato valido"
+      },
+      {
+        "field": "CollegioSindacale[].Qualifica",
+        "label_field": "Qualifica del sindaco",
+        "required": true,
+        "requiredMessage": "La qualifica del sindaco è obbligatoria",
+        "enum": [
+          "Presidente",
+          "Sindaco effettivo",
+          "Sindaco supplente"
         ]
       },
-      "ignoreEmptyAndPlaceholders": true
-    },
-    {
-      "rules": [
-        "È obbligatorio specificare la modalità di partecipazione alla procedura",
-        "Selezionare una tra: Impresa Singola, Raggruppamento Temporaneo (RTI/RTP), Consorzio o Altro"
-      ],
-      "message": "Deve essere indicata almeno una modalità di partecipazione",
-      "condition": {
-        "anyOf": [
-          "ManifestazioneInteresse.ModalitaPartecipazione.ImpresaSingola.Tipologia",
-          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
-          "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
-          "ManifestazioneInteresse.ModalitaPartecipazione.Altro.Specificare"
+      {
+        "field": "CollegioSindacale[].LuogoNascita",
+        "label_field": "Luogo di nascita del sindaco",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "CollegioSindacale[].DataNascita",
+        "label_field": "Data di nascita del sindaco",
+        "required": false,
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA"
+      },
+      {
+        "field": "CollegioSindacale[].Residenza.Nazione",
+        "label_field": "Nazione di residenza del sindaco",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 50
+      },
+      {
+        "field": "CollegioSindacale[].Residenza.Provincia",
+        "label_field": "Provincia di residenza del sindaco",
+        "required": false,
+        "pattern": "^[A-Za-z]{2}$",
+        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere"
+      },
+      {
+        "field": "CollegioSindacale[].Residenza.Comune",
+        "label_field": "Comune di residenza del sindaco",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "OrganismoDiVigilanza[].CognomeNome",
+        "label_field": "Cognome e Nome del componente OdV",
+        "required": true,
+        "requiredMessage": "Il cognome e nome del componente OdV è obbligatorio",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "OrganismoDiVigilanza[].CodiceFiscale",
+        "label_field": "Codice Fiscale del componente OdV",
+        "required": true,
+        "requiredMessage": "Il codice fiscale del componente OdV è obbligatorio",
+        "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
+        "formatMessage": "Il codice fiscale non è in un formato valido"
+      },
+      {
+        "field": "OrganismoDiVigilanza[].Qualifica",
+        "label_field": "Qualifica del componente OdV",
+        "required": true,
+        "requiredMessage": "La qualifica del componente OdV è obbligatoria",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "OrganismoDiVigilanza[].LuogoNascita",
+        "label_field": "Luogo di nascita del componente OdV",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "OrganismoDiVigilanza[].DataNascita",
+        "label_field": "Data di nascita del componente OdV",
+        "required": false,
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA"
+      },
+      {
+        "field": "OrganismoDiVigilanza[].Residenza.Nazione",
+        "label_field": "Nazione di residenza del componente OdV",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 50
+      },
+      {
+        "field": "OrganismoDiVigilanza[].Residenza.Provincia",
+        "label_field": "Provincia di residenza del componente OdV",
+        "required": false,
+        "pattern": "^[A-Za-z]{2}$",
+        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere"
+      },
+      {
+        "field": "OrganismoDiVigilanza[].Residenza.Comune",
+        "label_field": "Comune di residenza del componente OdV",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "DirettoreTecnico[].CognomeNome",
+        "label_field": "Cognome e Nome del direttore tecnico",
+        "required": true,
+        "requiredMessage": "Il cognome e nome del direttore tecnico è obbligatorio",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "DirettoreTecnico[].CodiceFiscale",
+        "label_field": "Codice Fiscale del direttore tecnico",
+        "required": true,
+        "requiredMessage": "Il codice fiscale del direttore tecnico è obbligatorio",
+        "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
+        "formatMessage": "Il codice fiscale non è in un formato valido"
+      },
+      {
+        "field": "DirettoreTecnico[].Qualifica",
+        "label_field": "Qualifica del direttore tecnico",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "DirettoreTecnico[].LuogoNascita",
+        "label_field": "Luogo di nascita del direttore tecnico",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "DirettoreTecnico[].DataNascita",
+        "label_field": "Data di nascita del direttore tecnico",
+        "required": false,
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA"
+      },
+      {
+        "field": "DirettoreTecnico[].Residenza.Nazione",
+        "label_field": "Nazione di residenza del direttore tecnico",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 50
+      },
+      {
+        "field": "DirettoreTecnico[].Residenza.Provincia",
+        "label_field": "Provincia di residenza del direttore tecnico",
+        "required": false,
+        "pattern": "^[A-Za-z]{2}$",
+        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere"
+      },
+      {
+        "field": "DirettoreTecnico[].Residenza.Comune",
+        "label_field": "Comune di residenza del direttore tecnico",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "SociPersoneFisiche[].CognomeNome",
+        "label_field": "Cognome e Nome del socio persona fisica",
+        "required": true,
+        "requiredMessage": "Il cognome e nome del socio è obbligatorio",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "SociPersoneFisiche[].CodiceFiscale",
+        "label_field": "Codice Fiscale del socio persona fisica",
+        "required": true,
+        "requiredMessage": "Il codice fiscale del socio è obbligatorio",
+        "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
+        "formatMessage": "Il codice fiscale non è in un formato valido"
+      },
+      {
+        "field": "SociPersoneFisiche[].LuogoNascita",
+        "label_field": "Luogo di nascita del socio persona fisica",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "SociPersoneFisiche[].DataNascita",
+        "label_field": "Data di nascita del socio persona fisica",
+        "required": false,
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di nascita deve essere nel formato GG/MM/AAAA"
+      },
+      {
+        "field": "SociPersoneFisiche[].Residenza.Nazione",
+        "label_field": "Nazione di residenza del socio persona fisica",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 50
+      },
+      {
+        "field": "SociPersoneFisiche[].Residenza.Provincia",
+        "label_field": "Provincia di residenza del socio persona fisica",
+        "required": false,
+        "pattern": "^[A-Za-z]{2}$",
+        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere"
+      },
+      {
+        "field": "SociPersoneFisiche[].Residenza.Comune",
+        "label_field": "Comune di residenza del socio persona fisica",
+        "required": false,
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "SociPersoneFisiche[].PercentualePartecipazione",
+        "label_field": "Percentuale di partecipazione del socio persona fisica",
+        "required": false,
+        "pattern": "^\\d{1,3}([,.]\\d{1,2})?\\s*%?$",
+        "formatMessage": "La percentuale deve essere un numero valido (es. 25, 25.5, 25%)"
+      },
+      {
+        "field": "SociPersoneGiuridiche[].DenominazioneRagioneSociale",
+        "label_field": "Denominazione/Ragione Sociale del socio persona giuridica",
+        "required": true,
+        "requiredMessage": "La denominazione del socio persona giuridica è obbligatoria",
+        "minLength": 2,
+        "maxLength": 200
+      },
+      {
+        "field": "SociPersoneGiuridiche[].CodiceFiscalePartitaIva",
+        "label_field": "Codice Fiscale/Partita IVA del socio persona giuridica",
+        "required": true,
+        "requiredMessage": "Il codice fiscale o partita IVA del socio persona giuridica è obbligatorio",
+        "pattern": "^[A-Za-z0-9]{11,16}$",
+        "formatMessage": "Il codice fiscale o partita IVA deve contenere da 11 a 16 caratteri alfanumerici"
+      },
+      {
+        "field": "SociPersoneGiuridiche[].IndirizzoSede",
+        "label_field": "Indirizzo sede del socio persona giuridica",
+        "required": false,
+        "minLength": 5,
+        "maxLength": 300
+      },
+      {
+        "field": "SociPersoneGiuridiche[].PercentualePartecipazione",
+        "label_field": "Percentuale di partecipazione del socio persona giuridica",
+        "required": false,
+        "pattern": "^\\d{1,3}([,.]\\d{1,2})?\\s*%?$",
+        "formatMessage": "La percentuale deve essere un numero valido (es. 25, 25.5, 25%)"
+      },
+      {
+        "field": "ConsorziatiFondatori[].DenominazioneRagioneSociale",
+        "label_field": "Denominazione/Ragione Sociale del consorziato",
+        "required": true,
+        "requiredMessage": "La denominazione del consorziato è obbligatoria",
+        "minLength": 2,
+        "maxLength": 200
+      },
+      {
+        "field": "ConsorziatiFondatori[].CodiceFiscalePartitaIva",
+        "label_field": "Codice Fiscale/Partita IVA del consorziato",
+        "required": true,
+        "requiredMessage": "Il codice fiscale o partita IVA del consorziato è obbligatorio",
+        "pattern": "^[A-Za-z0-9]{11,16}$",
+        "formatMessage": "Il codice fiscale o partita IVA deve contenere da 11 a 16 caratteri alfanumerici"
+      },
+      {
+        "field": "ConsorziatiFondatori[].IndirizzoSede",
+        "label_field": "Indirizzo sede del consorziato",
+        "required": false,
+        "minLength": 5,
+        "maxLength": 300
+      },
+      {
+        "field": "ConsorziatiFondatori[].QuotaPercentuale",
+        "label_field": "Quota percentuale del consorziato",
+        "required": false,
+        "pattern": "^\\d{1,3}([,.]\\d{1,2})?\\s*%?$",
+        "formatMessage": "La quota percentuale deve essere un numero valido (es. 25, 25.5, 25%)"
+      },
+      {
+        "field": "Firma.LuogoEData",
+        "label_field": "Luogo e data di sottoscrizione",
+        "required": false,
+        "maxLength": 100
+      },
+      {
+        "field": "Firma.FirmaPresente",
+        "label_field": "Firma presente",
+        "required": true,
+        "requiredMessage": "È necessario indicare se la firma è presente",
+        "enum": [
+          "SI",
+          "NO"
         ]
       },
-      "ignoreEmptyAndPlaceholders": true
-    },
-    {
-      "rules": [
-        "Se si partecipa in raggruppamento temporaneo, specificare la tipologia (RTI/RTP Costituito o Costituendo)",
-        "Indicare il ruolo dell'operatore economico nel raggruppamento (Mandataria o Mandante)",
-        "Indicare la ragione sociale dell'impresa Mandataria o Mandante"
-      ],
-      "message": "In caso di partecipazione in RTI/RTP, devono essere compilati tutti i campi: tipologia, ruolo e ragione sociale",
-      "condition": {
-        "allOf": [
-          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.TipologiaRtiRtp",
-          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.Ruolo",
-          "ManifestazioneInteresse.ModalitaPartecipazione.RaggruppamentoTemporaneo.RagioneSocialeMandataria"
+      {
+        "field": "Firma.TipoFirma",
+        "label_field": "Tipo di firma",
+        "required": false,
+        "requiredIf": {
+          "field": "Firma.FirmaPresente",
+          "operator": "==",
+          "value": "SI"
+        },
+        "requiredMessage": "Il tipo di firma è obbligatorio se la firma è presente",
+        "enum": [
+          "Firma autografa",
+          "Firma digitale",
+          "Firma autografa e digitale",
+          "Testo nell'area firma",
+          "Non presente"
         ]
       },
-      "ignoreEmptyAndPlaceholders": true
-    },
-    {
-      "rules": [
-        "Se si partecipa tramite consorzio, specificare la tipologia di consorzio",
-        "Indicare il ruolo dell'operatore economico (Consorzio o Consorziata esecutrice)",
-        "Se il ruolo è 'Consorziata esecutrice', indicare anche la ragione sociale del consorzio"
-      ],
-      "message": "In caso di partecipazione tramite consorzio, devono essere compilati tipologia e ruolo",
-      "condition": {
-        "allOf": [
-          "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.TipologiaConsorzio",
-          "ManifestazioneInteresse.ModalitaPartecipazione.Consorzio.Ruolo"
+      {
+        "field": "Firma.NomeFirmatario",
+        "label_field": "Nome del firmatario",
+        "required": false,
+        "requiredIf": {
+          "field": "Firma.FirmaPresente",
+          "operator": "==",
+          "value": "SI"
+        },
+        "requiredMessage": "Il nome del firmatario è obbligatorio se la firma è presente",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      {
+        "field": "Firma.DettagliFirmaDigitale",
+        "label_field": "Dettagli firma digitale",
+        "required": false,
+        "displayOnlyIf": {
+          "field": "Firma.TipoFirma",
+          "operator": "in",
+          "value": [
+            "Firma digitale",
+            "Firma autografa e digitale"
+          ]
+        },
+        "maxLength": 500
+      }
+    ],
+    "crossFieldRules": [
+      {
+        "condition": {
+          "anyOf": [
+            "Azienda.Contatti.Email",
+            "Azienda.Contatti.PEC"
+          ]
+        },
+        "message": "È necessario indicare almeno un recapito email (Email o PEC)",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Almeno uno tra Email e PEC deve essere compilato per garantire la comunicazione con l'azienda"
         ]
       },
-      "ignoreEmptyAndPlaceholders": true
-    },
-    {
-      "rules": [
-        "Il sottoscrittore deve indicare nome e cognome completi",
-        "Devono essere indicati luogo, provincia e data di nascita",
-        "La qualifica del sottoscrittore è obbligatoria per validare i poteri di firma"
-      ],
-      "message": "I dati anagrafici del sottoscrittore devono essere completi",
-      "condition": {
-        "allOf": [
-          "Sottoscrittore.NomeCognome",
-          "Sottoscrittore.LuogoNascita",
-          "Sottoscrittore.ProvinciaNascita",
-          "Sottoscrittore.DataNascita",
-          "Sottoscrittore.Qualifica"
+      {
+        "condition": {
+          "allOf": [
+            "Azienda.SedeLegale.Nazione",
+            "Azienda.SedeLegale.Indirizzo",
+            "Azienda.SedeLegale.Citta",
+            "Azienda.SedeLegale.Provincia",
+            "Azienda.SedeLegale.CAP"
+          ]
+        },
+        "message": "L'indirizzo della sede legale deve essere completo (Nazione, Indirizzo, Città, Provincia, CAP)",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Tutti i campi dell'indirizzo della sede legale devono essere compilati per garantire la corretta identificazione dell'azienda"
         ]
       },
-      "ignoreEmptyAndPlaceholders": true
-    },
-    {
-      "rules": [
-        "La ragione sociale dell'azienda è obbligatoria",
-        "Il codice fiscale dell'azienda è obbligatorio",
-        "La partita IVA dell'azienda è obbligatoria"
-      ],
-      "message": "I dati identificativi dell'azienda devono essere completi: ragione sociale, codice fiscale e partita IVA",
-      "condition": {
-        "allOf": [
-          "Azienda.RagioneSociale",
-          "Azienda.CodiceFiscale",
-          "Azienda.PartitaIva"
+      {
+        "condition": {
+          "allOf": [
+            "IscrizioneRegistroImprese.CameraDiCommercio",
+            "IscrizioneRegistroImprese.NumeroIscrizione",
+            "IscrizioneRegistroImprese.DataIscrizione"
+          ]
+        },
+        "message": "I dati di iscrizione al Registro Imprese devono essere completi (Camera di Commercio, Numero e Data iscrizione)",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "I dati essenziali dell'iscrizione al Registro Imprese sono obbligatori per la validità della dichiarazione CCIAA"
         ]
       },
-      "ignoreEmptyAndPlaceholders": true
-    },
-    {
-      "rules": [
-        "È obbligatorio fornire almeno un indirizzo di posta elettronica",
-        "La PEC è preferibile per le comunicazioni ufficiali con la Pubblica Amministrazione",
-        "Se disponibile, indicare sia email ordinaria che PEC"
-      ],
-      "message": "Deve essere indicato almeno un recapito email (Email o PEC)",
-      "condition": {
-        "anyOf": [
-          "Azienda.Contatti.Email",
-          "Azienda.Contatti.PEC"
+      {
+        "condition": {
+          "allOf": [
+            "Sottoscrittore.NomeCognome",
+            "Sottoscrittore.DataNascita",
+            "Sottoscrittore.LuogoNascita",
+            "Sottoscrittore.Qualifica"
+          ]
+        },
+        "message": "I dati anagrafici del sottoscrittore devono essere completi (Nome, Data e Luogo di nascita, Qualifica)",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "I dati identificativi del sottoscrittore sono obbligatori per la validità della dichiarazione"
         ]
       },
-      "ignoreEmptyAndPlaceholders": true
-    }
-  ]
-    }
+      {
+        "condition": {
+          "checkValue": "SI",
+          "field": "Firma.FirmaPresente"
+        },
+        "message": "Il documento deve essere firmato per essere valido",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "La presenza della firma è essenziale per la validità legale del documento",
+          "Se la firma è presente, deve essere indicato il tipo di firma e il nome del firmatario"
+        ]
+      },
+      {
+        "condition": {
+          "anyOf": [
+            "TitolariCaricheQualifiche",
+            "SociPersoneFisiche",
+            "SociPersoneGiuridiche"
+          ]
+        },
+        "message": "Deve essere indicato almeno un titolare di carica, socio persona fisica o socio persona giuridica",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Per le società è necessario indicare i soggetti con poteri di rappresentanza o i soci secondo quanto previsto dall'art. 85 D.Lgs. 159/2011"
+        ]
+      },
+      {
+        "condition": {
+          "consistencyCheck": {
+            "field1": "Sottoscrittore.NomeCognome",
+            "field2": "Firma.NomeFirmatario"
+          }
+        },
+        "message": "Il nome del sottoscrittore dovrebbe corrispondere al nome del firmatario",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Il documento deve essere firmato dalla stessa persona che si dichiara come sottoscrittore",
+          "In caso di discrepanza, verificare la legittimità della firma"
+        ]
+      },
+      {
+        "condition": {
+          "consistencyCheck": {
+            "field1": "Azienda.CodiceFiscale",
+            "field2": "Azienda.PartitaIva"
+          }
+        },
+        "message": "Per le ditte individuali, il codice fiscale e la partita IVA potrebbero coincidere; per le società, potrebbero essere diversi",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Verificare la coerenza tra codice fiscale e partita IVA in base alla forma giuridica dell'impresa"
+        ]
+      }
+    ]
+  }
