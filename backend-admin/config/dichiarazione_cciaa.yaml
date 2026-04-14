@@ -13,8 +13,8 @@ validation_rules: |
         "field": "Allegato",
         "label_field": "Allegato",
         "required": false,
-        "pattern": "^(Allegato\\s*[A-Za-z0-9]+)?$",
-        "formatMessage": "Il formato dell'allegato non è valido (es. Allegato A, Allegato B)"
+        "pattern": "^[A-Za-z0-9\\s\\.]+$",
+        "formatMessage": "Il codice allegato deve contenere solo lettere, numeri, spazi e punti"
       },
       {
         "field": "Titolo",
@@ -37,7 +37,9 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il nome e cognome del sottoscrittore è obbligatorio",
         "minLength": 3,
-        "maxLength": 100
+        "maxLength": 100,
+        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
+        "formatMessage": "Il nome e cognome deve contenere solo lettere, spazi, apostrofi e trattini"
       },
       {
         "field": "Sottoscrittore.DataNascita",
@@ -91,11 +93,11 @@ validation_rules: |
         },
         "requiredMessage": "Gli estremi della procura sono obbligatori per i procuratori",
         "minLength": 5,
-        "maxLength": 200
+        "maxLength": 500
       },
       {
         "field": "Azienda.RagioneSociale",
-        "label_field": "Ragione Sociale dell'azienda",
+        "label_field": "Ragione sociale dell'azienda",
         "required": true,
         "requiredMessage": "La ragione sociale dell'azienda è obbligatoria",
         "minLength": 2,
@@ -103,7 +105,7 @@ validation_rules: |
       },
       {
         "field": "Azienda.FormaGiuridicaImpresa",
-        "label_field": "Forma Giuridica dell'Impresa",
+        "label_field": "Forma giuridica dell'impresa",
         "required": true,
         "requiredMessage": "La forma giuridica dell'impresa è obbligatoria",
         "enum": [
@@ -136,11 +138,11 @@ validation_rules: |
       },
       {
         "field": "Azienda.CodiceFiscale",
-        "label_field": "Codice Fiscale dell'azienda",
+        "label_field": "Codice fiscale dell'azienda",
         "required": true,
         "requiredMessage": "Il codice fiscale dell'azienda è obbligatorio",
         "pattern": "^[A-Za-z0-9]{11,16}$",
-        "formatMessage": "Il codice fiscale deve contenere da 11 a 16 caratteri alfanumerici"
+        "formatMessage": "Il codice fiscale deve essere composto da 11 a 16 caratteri alfanumerici"
       },
       {
         "field": "Azienda.PartitaIva",
@@ -148,14 +150,14 @@ validation_rules: |
         "required": true,
         "requiredMessage": "La partita IVA dell'azienda è obbligatoria",
         "pattern": "^\\d{11}$",
-        "formatMessage": "La partita IVA deve contenere esattamente 11 cifre"
+        "formatMessage": "La partita IVA deve essere composta da 11 cifre"
       },
       {
         "field": "Azienda.PartitaIvaGruppo",
-        "label_field": "Partita IVA di Gruppo",
+        "label_field": "Partita IVA del gruppo",
         "required": false,
         "pattern": "^\\d{11}$",
-        "formatMessage": "La partita IVA di gruppo deve contenere esattamente 11 cifre"
+        "formatMessage": "La partita IVA del gruppo deve essere composta da 11 cifre"
       },
       {
         "field": "Azienda.SedeLegale.Nazione",
@@ -195,7 +197,7 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il CAP della sede legale è obbligatorio",
         "pattern": "^\\d{5}$",
-        "formatMessage": "Il CAP deve contenere esattamente 5 cifre"
+        "formatMessage": "Il CAP deve essere composto da 5 cifre"
       },
       {
         "field": "Azienda.Contatti.Telefono",
@@ -250,20 +252,20 @@ validation_rules: |
       },
       {
         "field": "IscrizioneRegistroImprese.CodiceAttivita",
-        "label_field": "Codice Attività ATECO",
+        "label_field": "Codice attività ATECO",
         "required": false,
         "pattern": "^[0-9]{2}(\\.[0-9]{2})?(\\.[0-9]{1,2})?$",
         "formatMessage": "Il codice ATECO deve essere nel formato corretto (es. 41.20.00)"
       },
       {
         "field": "IscrizioneRegistroImprese.CapitaleSociale",
-        "label_field": "Capitale Sociale",
+        "label_field": "Capitale sociale",
         "required": false,
         "maxLength": 50
       },
       {
         "field": "OggettoSociale",
-        "label_field": "Oggetto Sociale",
+        "label_field": "Oggetto sociale",
         "required": false,
         "minLength": 10,
         "maxLength": 5000
@@ -280,11 +282,13 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il cognome e nome del titolare di carica è obbligatorio",
         "minLength": 3,
-        "maxLength": 100
+        "maxLength": 100,
+        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
+        "formatMessage": "Il cognome e nome deve contenere solo lettere, spazi, apostrofi e trattini"
       },
       {
         "field": "TitolariCaricheQualifiche[].CodiceFiscale",
-        "label_field": "Codice Fiscale del titolare di carica",
+        "label_field": "Codice fiscale del titolare di carica",
         "required": true,
         "requiredMessage": "Il codice fiscale del titolare di carica è obbligatorio",
         "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
@@ -339,11 +343,13 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il cognome e nome del procuratore è obbligatorio",
         "minLength": 3,
-        "maxLength": 100
+        "maxLength": 100,
+        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
+        "formatMessage": "Il cognome e nome deve contenere solo lettere, spazi, apostrofi e trattini"
       },
       {
         "field": "ProcuratoriGeneraliSpeciali[].CodiceFiscale",
-        "label_field": "Codice Fiscale del procuratore",
+        "label_field": "Codice fiscale del procuratore",
         "required": true,
         "requiredMessage": "Il codice fiscale del procuratore è obbligatorio",
         "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
@@ -398,11 +404,13 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il cognome e nome del sindaco è obbligatorio",
         "minLength": 3,
-        "maxLength": 100
+        "maxLength": 100,
+        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
+        "formatMessage": "Il cognome e nome deve contenere solo lettere, spazi, apostrofi e trattini"
       },
       {
         "field": "CollegioSindacale[].CodiceFiscale",
-        "label_field": "Codice Fiscale del sindaco",
+        "label_field": "Codice fiscale del sindaco",
         "required": true,
         "requiredMessage": "Il codice fiscale del sindaco è obbligatorio",
         "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
@@ -460,11 +468,13 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il cognome e nome del componente OdV è obbligatorio",
         "minLength": 3,
-        "maxLength": 100
+        "maxLength": 100,
+        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
+        "formatMessage": "Il cognome e nome deve contenere solo lettere, spazi, apostrofi e trattini"
       },
       {
         "field": "OrganismoDiVigilanza[].CodiceFiscale",
-        "label_field": "Codice Fiscale del componente OdV",
+        "label_field": "Codice fiscale del componente OdV",
         "required": true,
         "requiredMessage": "Il codice fiscale del componente OdV è obbligatorio",
         "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
@@ -519,11 +529,13 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il cognome e nome del direttore tecnico è obbligatorio",
         "minLength": 3,
-        "maxLength": 100
+        "maxLength": 100,
+        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
+        "formatMessage": "Il cognome e nome deve contenere solo lettere, spazi, apostrofi e trattini"
       },
       {
         "field": "DirettoreTecnico[].CodiceFiscale",
-        "label_field": "Codice Fiscale del direttore tecnico",
+        "label_field": "Codice fiscale del direttore tecnico",
         "required": true,
         "requiredMessage": "Il codice fiscale del direttore tecnico è obbligatorio",
         "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
@@ -577,11 +589,13 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il cognome e nome del socio è obbligatorio",
         "minLength": 3,
-        "maxLength": 100
+        "maxLength": 100,
+        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
+        "formatMessage": "Il cognome e nome deve contenere solo lettere, spazi, apostrofi e trattini"
       },
       {
         "field": "SociPersoneFisiche[].CodiceFiscale",
-        "label_field": "Codice Fiscale del socio persona fisica",
+        "label_field": "Codice fiscale del socio persona fisica",
         "required": true,
         "requiredMessage": "Il codice fiscale del socio è obbligatorio",
         "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$",
@@ -631,7 +645,7 @@ validation_rules: |
       },
       {
         "field": "SociPersoneGiuridiche[].DenominazioneRagioneSociale",
-        "label_field": "Denominazione/Ragione Sociale del socio persona giuridica",
+        "label_field": "Denominazione/Ragione sociale del socio persona giuridica",
         "required": true,
         "requiredMessage": "La denominazione del socio persona giuridica è obbligatoria",
         "minLength": 2,
@@ -639,11 +653,11 @@ validation_rules: |
       },
       {
         "field": "SociPersoneGiuridiche[].CodiceFiscalePartitaIva",
-        "label_field": "Codice Fiscale/Partita IVA del socio persona giuridica",
+        "label_field": "Codice fiscale/Partita IVA del socio persona giuridica",
         "required": true,
         "requiredMessage": "Il codice fiscale o partita IVA del socio persona giuridica è obbligatorio",
         "pattern": "^[A-Za-z0-9]{11,16}$",
-        "formatMessage": "Il codice fiscale o partita IVA deve contenere da 11 a 16 caratteri alfanumerici"
+        "formatMessage": "Il codice fiscale/partita IVA deve essere composto da 11 a 16 caratteri alfanumerici"
       },
       {
         "field": "SociPersoneGiuridiche[].IndirizzoSede",
@@ -661,7 +675,7 @@ validation_rules: |
       },
       {
         "field": "ConsorziatiFondatori[].DenominazioneRagioneSociale",
-        "label_field": "Denominazione/Ragione Sociale del consorziato",
+        "label_field": "Denominazione/Ragione sociale del consorziato",
         "required": true,
         "requiredMessage": "La denominazione del consorziato è obbligatoria",
         "minLength": 2,
@@ -669,11 +683,11 @@ validation_rules: |
       },
       {
         "field": "ConsorziatiFondatori[].CodiceFiscalePartitaIva",
-        "label_field": "Codice Fiscale/Partita IVA del consorziato",
+        "label_field": "Codice fiscale/Partita IVA del consorziato",
         "required": true,
         "requiredMessage": "Il codice fiscale o partita IVA del consorziato è obbligatorio",
         "pattern": "^[A-Za-z0-9]{11,16}$",
-        "formatMessage": "Il codice fiscale o partita IVA deve contenere da 11 a 16 caratteri alfanumerici"
+        "formatMessage": "Il codice fiscale/partita IVA deve essere composto da 11 a 16 caratteri alfanumerici"
       },
       {
         "field": "ConsorziatiFondatori[].IndirizzoSede",
@@ -759,7 +773,7 @@ validation_rules: |
             "Azienda.Contatti.PEC"
           ]
         },
-        "message": "È necessario indicare almeno un recapito email (Email o PEC)",
+        "message": "È necessario indicare almeno un recapito email o PEC dell'azienda",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
           "Almeno uno tra Email e PEC deve essere compilato per garantire la comunicazione con l'azienda"
@@ -775,24 +789,11 @@ validation_rules: |
             "Azienda.SedeLegale.CAP"
           ]
         },
-        "message": "L'indirizzo della sede legale deve essere completo (Nazione, Indirizzo, Città, Provincia, CAP)",
+        "message": "L'indirizzo della sede legale deve essere completo di tutti i campi: nazione, indirizzo, città, provincia e CAP",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Tutti i campi dell'indirizzo della sede legale devono essere compilati per garantire la corretta identificazione dell'azienda"
-        ]
-      },
-      {
-        "condition": {
-          "allOf": [
-            "IscrizioneRegistroImprese.CameraDiCommercio",
-            "IscrizioneRegistroImprese.NumeroIscrizione",
-            "IscrizioneRegistroImprese.DataIscrizione"
-          ]
-        },
-        "message": "I dati di iscrizione al Registro Imprese devono essere completi (Camera di Commercio, Numero e Data iscrizione)",
-        "ignoreEmptyAndPlaceholders": true,
-        "rules": [
-          "I dati essenziali dell'iscrizione al Registro Imprese sono obbligatori per la validità della dichiarazione CCIAA"
+          "Tutti i campi dell'indirizzo della sede legale devono essere compilati",
+          "La sede legale è un dato obbligatorio per l'identificazione dell'impresa"
         ]
       },
       {
@@ -804,10 +805,26 @@ validation_rules: |
             "Sottoscrittore.Qualifica"
           ]
         },
-        "message": "I dati anagrafici del sottoscrittore devono essere completi (Nome, Data e Luogo di nascita, Qualifica)",
+        "message": "I dati anagrafici del sottoscrittore devono essere completi: nome e cognome, data di nascita, luogo di nascita e qualifica",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "I dati identificativi del sottoscrittore sono obbligatori per la validità della dichiarazione"
+          "Il sottoscrittore deve essere identificato con tutti i dati anagrafici essenziali",
+          "La qualifica del sottoscrittore è necessaria per verificare i poteri di firma"
+        ]
+      },
+      {
+        "condition": {
+          "allOf": [
+            "IscrizioneRegistroImprese.CameraDiCommercio",
+            "IscrizioneRegistroImprese.NumeroIscrizione",
+            "IscrizioneRegistroImprese.DataIscrizione"
+          ]
+        },
+        "message": "I dati di iscrizione al Registro Imprese devono essere completi: Camera di Commercio, numero e data di iscrizione",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "L'iscrizione al Registro Imprese è obbligatoria per la partecipazione alle gare pubbliche",
+          "I dati devono corrispondere a quanto risultante dalla visura camerale"
         ]
       },
       {
@@ -815,11 +832,11 @@ validation_rules: |
           "checkValue": "SI",
           "field": "Firma.FirmaPresente"
         },
-        "message": "Il documento deve essere firmato per essere valido",
+        "message": "Se la firma è presente, devono essere indicati il tipo di firma e il nome del firmatario",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "La presenza della firma è essenziale per la validità legale del documento",
-          "Se la firma è presente, deve essere indicato il tipo di firma e il nome del firmatario"
+          "La presenza della firma deve essere accompagnata dall'identificazione del firmatario",
+          "Il tipo di firma (autografa, digitale, etc.) deve essere specificato"
         ]
       },
       {
@@ -830,10 +847,26 @@ validation_rules: |
             "SociPersoneGiuridiche"
           ]
         },
-        "message": "Deve essere indicato almeno un titolare di carica, socio persona fisica o socio persona giuridica",
+        "message": "Deve essere presente almeno un titolare di carica, socio persona fisica o socio persona giuridica",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Per le società è necessario indicare i soggetti con poteri di rappresentanza o i soci secondo quanto previsto dall'art. 85 D.Lgs. 159/2011"
+          "L'impresa deve indicare i soggetti con poteri di rappresentanza o partecipazione societaria",
+          "I dati sono necessari ai fini della normativa antimafia (D.Lgs. 159/2011)"
+        ]
+      },
+      {
+        "condition": {
+          "allOf": [
+            "Azienda.RagioneSociale",
+            "Azienda.CodiceFiscale",
+            "Azienda.PartitaIva"
+          ]
+        },
+        "message": "I dati identificativi dell'azienda devono essere completi: ragione sociale, codice fiscale e partita IVA",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "L'azienda deve essere identificata univocamente con ragione sociale, CF e P.IVA",
+          "Questi dati sono essenziali per la verifica dei requisiti di partecipazione"
         ]
       },
       {
@@ -846,21 +879,8 @@ validation_rules: |
         "message": "Il nome del sottoscrittore dovrebbe corrispondere al nome del firmatario",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Il documento deve essere firmato dalla stessa persona che si dichiara come sottoscrittore",
-          "In caso di discrepanza, verificare la legittimità della firma"
-        ]
-      },
-      {
-        "condition": {
-          "consistencyCheck": {
-            "field1": "Azienda.CodiceFiscale",
-            "field2": "Azienda.PartitaIva"
-          }
-        },
-        "message": "Per le ditte individuali, il codice fiscale e la partita IVA potrebbero coincidere; per le società, potrebbero essere diversi",
-        "ignoreEmptyAndPlaceholders": true,
-        "rules": [
-          "Verificare la coerenza tra codice fiscale e partita IVA in base alla forma giuridica dell'impresa"
+          "Il documento deve essere firmato dal soggetto dichiarante",
+          "In caso di discrepanza, verificare la legittimazione alla firma"
         ]
       }
     ]
