@@ -13,39 +13,38 @@ validation_rules: |
         "field": "Documento.CodiceAllegato",
         "label_field": "Codice Allegato",
         "required": false,
-        "pattern": "^[A-Za-z0-9\\s\\.\\(\\)]+$",
-        "formatMessage": "Il codice allegato deve contenere solo lettere, numeri, spazi, punti e parentesi"
+        "pattern": "^[A-Za-z0-9\\s\\.]+$",
+        "formatMessage": "Il codice allegato deve contenere solo lettere, numeri, spazi e punti"
       },
       {
-        "field": "Documento.TitoloAllegato",
-        "label_field": "Titolo Allegato",
+        "field": "Documento.TitoloDocumento",
+        "label_field": "Titolo Documento",
         "required": true,
-        "requiredMessage": "Il titolo dell'allegato è obbligatorio",
+        "requiredMessage": "Il titolo del documento è obbligatorio",
         "minLength": 5,
         "maxLength": 500
       },
       {
-        "field": "Documento.RiferimentoNormativo",
-        "label_field": "Riferimento Normativo",
+        "field": "Documento.RiferimentiNormativi",
+        "label_field": "Riferimenti Normativi",
         "required": false,
-        "minLength": 10,
-        "maxLength": 500
+        "minLength": 3,
+        "maxLength": 1000
       },
       {
-        "field": "Documento.Oggetto",
-        "label_field": "Oggetto della Procedura",
-        "required": true,
-        "requiredMessage": "L'oggetto della procedura è obbligatorio",
-        "minLength": 10,
-        "maxLength": 1000
+        "field": "Documento.OggettoProcedura",
+        "label_field": "Oggetto Procedura",
+        "required": false,
+        "minLength": 5,
+        "maxLength": 2000
       },
       {
         "field": "Dichiarante.NomeCognome",
         "label_field": "Nome e Cognome Dichiarante",
         "required": true,
-        "requiredMessage": "Il nome e cognome del dichiarante sono obbligatori",
+        "requiredMessage": "Il nome e cognome del dichiarante è obbligatorio",
         "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
-        "formatMessage": "Il nome e cognome devono contenere solo lettere, spazi, apostrofi e trattini",
+        "formatMessage": "Il nome e cognome deve contenere solo lettere, spazi, apostrofi e trattini",
         "minLength": 3,
         "maxLength": 100
       },
@@ -70,7 +69,7 @@ validation_rules: |
         "label_field": "Provincia di Nascita Dichiarante",
         "required": false,
         "pattern": "^[A-Z]{2}$",
-        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere maiuscole"
+        "formatMessage": "La provincia deve essere una sigla di 2 lettere maiuscole"
       },
       {
         "field": "Dichiarante.Qualifica",
@@ -78,27 +77,35 @@ validation_rules: |
         "required": true,
         "requiredMessage": "La qualifica del dichiarante è obbligatoria",
         "enum": [
-          "Amministratore delegato",
-          "Legale rappresentante",
-          "Procuratore",
           "Titolare",
-          "Presidente del CdA",
-          "Socio amministratore",
-          "Direttore tecnico"
-        ]
+          "Legale Rappresentante",
+          "Amministratore Delegato",
+          "Amministratore Unico",
+          "Procuratore",
+          "Procuratore Speciale",
+          "Socio Amministratore",
+          "Presidente CdA",
+          "Consigliere CdA",
+          "Direttore Tecnico",
+          "Altro"
+        ],
+        "formatMessage": "La qualifica deve essere uno dei valori ammessi"
       },
       {
         "field": "Dichiarante.EstremiProcura",
-        "label_field": "Estremi della Procura",
+        "label_field": "Estremi Procura",
         "required": false,
         "requiredIf": {
           "field": "Dichiarante.Qualifica",
-          "operator": "==",
-          "value": "Procuratore"
+          "operator": "in",
+          "value": [
+            "Procuratore",
+            "Procuratore Speciale"
+          ]
         },
         "requiredMessage": "Gli estremi della procura sono obbligatori per i procuratori",
         "minLength": 5,
-        "maxLength": 200
+        "maxLength": 500
       },
       {
         "field": "Impresa.RagioneSociale",
@@ -114,31 +121,30 @@ validation_rules: |
         "required": true,
         "requiredMessage": "La forma giuridica dell'impresa è obbligatoria",
         "enum": [
-          "IMPRESA INDIVIDUALE",
-          "SOCIETA' IN NOME COLLETTIVO",
-          "SOCIETA' IN ACCOMANDITA SEMPLICE",
-          "SOCIETA' PER AZIONI",
-          "SOCIETA' A RESPONSABILITA' LIMITATA",
-          "SOCIETA' COOPERATIVA",
-          "CONSORZIO",
-          "ALTRO"
-        ]
+          "Impresa Individuale",
+          "S.N.C.",
+          "S.A.S.",
+          "S.R.L.",
+          "S.R.L.S.",
+          "S.P.A.",
+          "S.A.P.A.",
+          "Società Cooperativa",
+          "Consorzio Stabile",
+          "Consorzio Ordinario",
+          "Altro"
+        ],
+        "formatMessage": "La forma giuridica deve essere uno dei valori ammessi"
       },
       {
         "field": "Impresa.FormaGiuridicaAltro",
-        "label_field": "Forma Giuridica Altro (specificare)",
+        "label_field": "Forma Giuridica Altro",
         "required": false,
         "requiredIf": {
           "field": "Impresa.FormaGiuridica",
           "operator": "==",
-          "value": "ALTRO"
+          "value": "Altro"
         },
         "requiredMessage": "Specificare la forma giuridica se selezionato 'Altro'",
-        "displayOnlyIf": {
-          "field": "Impresa.FormaGiuridica",
-          "operator": "==",
-          "value": "ALTRO"
-        },
         "minLength": 3,
         "maxLength": 100
       },
@@ -148,22 +154,22 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il codice fiscale dell'impresa è obbligatorio",
         "pattern": "^[A-Za-z0-9]{11,16}$",
-        "formatMessage": "Il codice fiscale deve contenere da 11 a 16 caratteri alfanumerici"
+        "formatMessage": "Il codice fiscale deve essere di 11 cifre (persona giuridica) o 16 caratteri alfanumerici (persona fisica)"
       },
       {
         "field": "Impresa.PartitaIVA",
-        "label_field": "Partita IVA Impresa",
+        "label_field": "Partita IVA",
         "required": true,
-        "requiredMessage": "La partita IVA dell'impresa è obbligatoria",
-        "pattern": "^[0-9]{11}$",
-        "formatMessage": "La partita IVA deve contenere esattamente 11 cifre"
+        "requiredMessage": "La partita IVA è obbligatoria",
+        "pattern": "^\\d{11}$",
+        "formatMessage": "La partita IVA deve essere composta da esattamente 11 cifre"
       },
       {
         "field": "Impresa.PartitaIVAGruppo",
         "label_field": "Partita IVA di Gruppo",
         "required": false,
-        "pattern": "^[0-9]{11}$",
-        "formatMessage": "La partita IVA di gruppo deve contenere esattamente 11 cifre"
+        "pattern": "^\\d{11}$",
+        "formatMessage": "La partita IVA di gruppo deve essere composta da esattamente 11 cifre"
       },
       {
         "field": "Impresa.SedeLegale.Nazione",
@@ -186,7 +192,7 @@ validation_rules: |
         "label_field": "Provincia Sede Legale",
         "required": false,
         "pattern": "^[A-Z]{2}$",
-        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere maiuscole"
+        "formatMessage": "La provincia deve essere una sigla di 2 lettere maiuscole"
       },
       {
         "field": "Impresa.SedeLegale.Indirizzo",
@@ -202,14 +208,14 @@ validation_rules: |
         "required": true,
         "requiredMessage": "Il CAP della sede legale è obbligatorio",
         "pattern": "^\\d{5}$",
-        "formatMessage": "Il CAP deve contenere esattamente 5 cifre"
+        "formatMessage": "Il CAP deve essere composto da esattamente 5 cifre"
       },
       {
         "field": "Impresa.Contatti.Telefono",
         "label_field": "Telefono Impresa",
         "required": false,
         "pattern": "^[\\+]?[\\d\\s\\-\\/]{6,20}$",
-        "formatMessage": "Il numero di telefono deve contenere da 6 a 20 caratteri tra cifre, spazi, trattini e barre"
+        "formatMessage": "Il numero di telefono deve contenere solo cifre, spazi, trattini e il prefisso internazionale"
       },
       {
         "field": "Impresa.Contatti.Email",
@@ -221,18 +227,22 @@ validation_rules: |
       {
         "field": "Impresa.Contatti.PEC",
         "label_field": "PEC Impresa",
-        "required": true,
-        "requiredMessage": "L'indirizzo PEC dell'impresa è obbligatorio",
+        "required": false,
         "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
         "formatMessage": "L'indirizzo PEC non è in un formato valido"
       },
       {
-        "field": "SoggettiArt94Comma3[].CognomeNome",
+        "field": "SoggettiArt94Comma3",
+        "label_field": "Soggetti Art. 94 Comma 3",
+        "required": false
+      },
+      {
+        "field": "SoggettiArt94Comma3[].CognomeENome",
         "label_field": "Cognome e Nome Soggetto Art. 94",
         "required": true,
-        "requiredMessage": "Il cognome e nome del soggetto sono obbligatori",
+        "requiredMessage": "Il cognome e nome del soggetto è obbligatorio",
         "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
-        "formatMessage": "Il cognome e nome devono contenere solo lettere, spazi, apostrofi e trattini",
+        "formatMessage": "Il cognome e nome deve contenere solo lettere, spazi, apostrofi e trattini",
         "minLength": 3,
         "maxLength": 100
       },
@@ -241,16 +251,35 @@ validation_rules: |
         "label_field": "Codice Fiscale Soggetto Art. 94",
         "required": true,
         "requiredMessage": "Il codice fiscale del soggetto è obbligatorio",
-        "pattern": "^[A-Za-z0-9]{16}$",
-        "formatMessage": "Il codice fiscale deve contenere esattamente 16 caratteri alfanumerici"
+        "pattern": "^[A-Za-z]{6}\\d{2}[A-Za-z]\\d{2}[A-Za-z]\\d{3}[A-Za-z]$",
+        "formatMessage": "Il codice fiscale deve essere nel formato corretto (16 caratteri alfanumerici)"
       },
       {
         "field": "SoggettiArt94Comma3[].Qualifica",
         "label_field": "Qualifica Soggetto Art. 94",
         "required": true,
         "requiredMessage": "La qualifica del soggetto è obbligatoria",
-        "minLength": 3,
-        "maxLength": 100
+        "enum": [
+          "Titolare",
+          "Legale Rappresentante",
+          "Amministratore Delegato",
+          "Amministratore Unico",
+          "Procuratore",
+          "Procuratore Speciale",
+          "Socio Amministratore",
+          "Socio Accomandatario",
+          "Presidente CdA",
+          "Consigliere CdA",
+          "Direttore Tecnico",
+          "Membro Collegio Sindacale",
+          "Revisore Contabile",
+          "Membro OdV",
+          "Institori",
+          "Procuratore Generale",
+          "Amministratore di Fatto",
+          "Altro"
+        ],
+        "formatMessage": "La qualifica deve essere uno dei valori ammessi"
       },
       {
         "field": "SoggettiArt94Comma3[].LuogoNascita",
@@ -280,7 +309,7 @@ validation_rules: |
         "label_field": "Provincia Residenza Soggetto Art. 94",
         "required": false,
         "pattern": "^[A-Z]{2}$",
-        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere maiuscole"
+        "formatMessage": "La provincia deve essere una sigla di 2 lettere maiuscole"
       },
       {
         "field": "SocioPersonaGiuridica.RagioneSociale",
@@ -293,116 +322,132 @@ validation_rules: |
         "field": "SocioPersonaGiuridica.CodiceFiscalePartitaIVA",
         "label_field": "CF/P.IVA Socio Persona Giuridica",
         "required": false,
+        "pattern": "^[A-Za-z0-9]{11,16}$",
+        "formatMessage": "Il codice fiscale o partita IVA deve essere di 11 o 16 caratteri",
         "requiredIf": {
           "field": "SocioPersonaGiuridica.RagioneSociale",
           "operator": "!=",
           "value": ""
         },
-        "requiredMessage": "Il codice fiscale o partita IVA del socio persona giuridica è obbligatorio se indicata la ragione sociale",
-        "pattern": "^[A-Za-z0-9]{11,16}$",
-        "formatMessage": "Il codice fiscale/partita IVA deve contenere da 11 a 16 caratteri alfanumerici"
+        "requiredMessage": "Il codice fiscale o partita IVA è obbligatorio se è indicata la ragione sociale del socio"
       },
       {
         "field": "SocioPersonaGiuridica.SedeLegale.Citta",
         "label_field": "Città Sede Legale Socio Persona Giuridica",
         "required": false,
+        "minLength": 2,
+        "maxLength": 100,
         "requiredIf": {
           "field": "SocioPersonaGiuridica.RagioneSociale",
           "operator": "!=",
           "value": ""
         },
-        "requiredMessage": "La città della sede legale del socio persona giuridica è obbligatoria",
-        "minLength": 2,
-        "maxLength": 100
+        "requiredMessage": "La città della sede legale è obbligatoria se è indicata la ragione sociale del socio"
       },
       {
         "field": "SocioPersonaGiuridica.SedeLegale.Indirizzo",
         "label_field": "Indirizzo Sede Legale Socio Persona Giuridica",
         "required": false,
+        "minLength": 5,
+        "maxLength": 200,
         "requiredIf": {
           "field": "SocioPersonaGiuridica.RagioneSociale",
           "operator": "!=",
           "value": ""
         },
-        "requiredMessage": "L'indirizzo della sede legale del socio persona giuridica è obbligatorio",
-        "minLength": 5,
-        "maxLength": 200
+        "requiredMessage": "L'indirizzo della sede legale è obbligatorio se è indicata la ragione sociale del socio"
       },
       {
         "field": "SocioPersonaGiuridica.SedeLegale.CAP",
         "label_field": "CAP Sede Legale Socio Persona Giuridica",
         "required": false,
+        "pattern": "^\\d{5}$",
+        "formatMessage": "Il CAP deve essere composto da esattamente 5 cifre",
         "requiredIf": {
           "field": "SocioPersonaGiuridica.RagioneSociale",
           "operator": "!=",
           "value": ""
         },
-        "requiredMessage": "Il CAP della sede legale del socio persona giuridica è obbligatorio",
-        "pattern": "^\\d{5}$",
-        "formatMessage": "Il CAP deve contenere esattamente 5 cifre"
+        "requiredMessage": "Il CAP della sede legale è obbligatorio se è indicata la ragione sociale del socio"
       },
       {
-        "field": "SocioPersonaGiuridica.Amministratori[].CognomeNome",
-        "label_field": "Cognome e Nome Amministratore Socio PG",
+        "field": "SocioPersonaGiuridica.AmministratoriSocio",
+        "label_field": "Amministratori Socio Persona Giuridica",
+        "required": false
+      },
+      {
+        "field": "SocioPersonaGiuridica.AmministratoriSocio[].CognomeENome",
+        "label_field": "Cognome e Nome Amministratore Socio",
         "required": true,
-        "requiredMessage": "Il cognome e nome dell'amministratore sono obbligatori",
+        "requiredMessage": "Il cognome e nome dell'amministratore è obbligatorio",
         "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
-        "formatMessage": "Il cognome e nome devono contenere solo lettere, spazi, apostrofi e trattini",
+        "formatMessage": "Il cognome e nome deve contenere solo lettere, spazi, apostrofi e trattini",
         "minLength": 3,
         "maxLength": 100
       },
       {
-        "field": "SocioPersonaGiuridica.Amministratori[].CodiceFiscale",
-        "label_field": "Codice Fiscale Amministratore Socio PG",
+        "field": "SocioPersonaGiuridica.AmministratoriSocio[].CodiceFiscale",
+        "label_field": "Codice Fiscale Amministratore Socio",
         "required": true,
         "requiredMessage": "Il codice fiscale dell'amministratore è obbligatorio",
-        "pattern": "^[A-Za-z0-9]{16}$",
-        "formatMessage": "Il codice fiscale deve contenere esattamente 16 caratteri alfanumerici"
+        "pattern": "^[A-Za-z]{6}\\d{2}[A-Za-z]\\d{2}[A-Za-z]\\d{3}[A-Za-z]$",
+        "formatMessage": "Il codice fiscale deve essere nel formato corretto (16 caratteri alfanumerici)"
       },
       {
-        "field": "SocioPersonaGiuridica.Amministratori[].Qualifica",
-        "label_field": "Qualifica Amministratore Socio PG",
+        "field": "SocioPersonaGiuridica.AmministratoriSocio[].Qualifica",
+        "label_field": "Qualifica Amministratore Socio",
         "required": true,
         "requiredMessage": "La qualifica dell'amministratore è obbligatoria",
-        "minLength": 3,
-        "maxLength": 100
+        "enum": [
+          "Presidente CdA",
+          "Consigliere CdA",
+          "Amministratore Delegato",
+          "Amministratore Unico",
+          "Legale Rappresentante",
+          "Direttore Tecnico",
+          "Membro Collegio Sindacale",
+          "Revisore Contabile",
+          "Membro OdV",
+          "Altro"
+        ],
+        "formatMessage": "La qualifica deve essere uno dei valori ammessi"
       },
       {
-        "field": "SocioPersonaGiuridica.Amministratori[].LuogoNascita",
-        "label_field": "Luogo di Nascita Amministratore Socio PG",
+        "field": "SocioPersonaGiuridica.AmministratoriSocio[].LuogoNascita",
+        "label_field": "Luogo di Nascita Amministratore Socio",
         "required": true,
         "requiredMessage": "Il luogo di nascita dell'amministratore è obbligatorio",
         "minLength": 2,
         "maxLength": 100
       },
       {
-        "field": "SocioPersonaGiuridica.Amministratori[].DataNascita",
-        "label_field": "Data di Nascita Amministratore Socio PG",
+        "field": "SocioPersonaGiuridica.AmministratoriSocio[].DataNascita",
+        "label_field": "Data di Nascita Amministratore Socio",
         "required": true,
         "requiredMessage": "La data di nascita dell'amministratore è obbligatoria",
         "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
         "formatMessage": "La data di nascita deve essere nel formato gg/mm/aaaa"
       },
       {
-        "field": "SocioPersonaGiuridica.Amministratori[].Residenza.Nazione",
-        "label_field": "Nazione Residenza Amministratore Socio PG",
+        "field": "SocioPersonaGiuridica.AmministratoriSocio[].Residenza.Nazione",
+        "label_field": "Nazione Residenza Amministratore Socio",
         "required": false,
         "minLength": 2,
         "maxLength": 50
       },
       {
-        "field": "SocioPersonaGiuridica.Amministratori[].Residenza.Provincia",
-        "label_field": "Provincia Residenza Amministratore Socio PG",
+        "field": "SocioPersonaGiuridica.AmministratoriSocio[].Residenza.Provincia",
+        "label_field": "Provincia Residenza Amministratore Socio",
         "required": false,
         "pattern": "^[A-Z]{2}$",
-        "formatMessage": "La provincia deve essere indicata con la sigla di 2 lettere maiuscole"
+        "formatMessage": "La provincia deve essere una sigla di 2 lettere maiuscole"
       },
       {
         "field": "Firma.LuogoEData",
         "label_field": "Luogo e Data Firma",
         "required": false,
-        "pattern": "^.+,\\s*\\d{2}/\\d{2}/\\d{4}$",
-        "formatMessage": "Il luogo e data devono essere nel formato 'Luogo, gg/mm/aaaa'"
+        "minLength": 5,
+        "maxLength": 100
       },
       {
         "field": "Firma.FirmaPresente",
@@ -412,35 +457,37 @@ validation_rules: |
         "enum": [
           "SI",
           "NO"
-        ]
+        ],
+        "formatMessage": "Il valore deve essere 'SI' o 'NO'"
       },
       {
         "field": "Firma.TipoFirma",
-        "label_field": "Tipo di Firma",
+        "label_field": "Tipo Firma",
         "required": true,
         "requiredMessage": "È necessario indicare il tipo di firma",
         "enum": [
           "Firma autografa",
           "Firma digitale",
           "Firma autografa e digitale",
-          "Testo nell'area firma",
+          "Testo nell area firma",
           "Non presente"
-        ]
+        ],
+        "formatMessage": "Il tipo di firma deve essere uno dei valori ammessi"
       },
       {
         "field": "Firma.NomeFirmatario",
         "label_field": "Nome Firmatario",
         "required": false,
+        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
+        "formatMessage": "Il nome del firmatario deve contenere solo lettere, spazi, apostrofi e trattini",
+        "minLength": 3,
+        "maxLength": 100,
         "requiredIf": {
           "field": "Firma.FirmaPresente",
           "operator": "==",
           "value": "SI"
         },
-        "requiredMessage": "Il nome del firmatario è obbligatorio se la firma è presente",
-        "pattern": "^[A-Za-zÀ-ÿ\\s'\\-]+$",
-        "formatMessage": "Il nome del firmatario deve contenere solo lettere, spazi, apostrofi e trattini",
-        "minLength": 3,
-        "maxLength": 100
+        "requiredMessage": "Il nome del firmatario è obbligatorio se la firma è presente"
       }
     ],
     "crossFieldRules": [
@@ -451,10 +498,10 @@ validation_rules: |
             "Impresa.Contatti.PEC"
           ]
         },
-        "message": "È necessario indicare almeno un indirizzo email o PEC per l'impresa",
+        "message": "È necessario indicare almeno un indirizzo email o PEC dell'impresa",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Almeno uno tra Email e PEC dell'impresa deve essere compilato"
+          "Almeno uno tra Email e PEC deve essere compilato per i contatti dell'impresa"
         ]
       },
       {
@@ -466,10 +513,10 @@ validation_rules: |
             "Impresa.SedeLegale.CAP"
           ]
         },
-        "message": "I dati della sede legale devono essere completi",
+        "message": "I dati della sede legale devono essere completi (nazione, città, indirizzo e CAP)",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Se viene indicata la sede legale, devono essere compilati: Nazione, Città, Indirizzo e CAP"
+          "Se viene compilata la sede legale, tutti i campi obbligatori devono essere presenti"
         ]
       },
       {
@@ -484,82 +531,119 @@ validation_rules: |
         "message": "I dati anagrafici del dichiarante devono essere completi",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Il dichiarante deve avere compilati: Nome e Cognome, Data di nascita, Luogo di nascita e Qualifica"
+          "Nome, cognome, data di nascita, luogo di nascita e qualifica del dichiarante sono tutti obbligatori"
         ]
       },
       {
         "condition": {
-          "allOf": [
-            "Firma.FirmaPresente",
-            "Firma.TipoFirma"
-          ]
+          "checkValue": "SI",
+          "field": "Firma.FirmaPresente"
         },
-        "message": "Le informazioni sulla firma devono essere complete",
+        "message": "Se la firma è presente, deve essere indicato il tipo di firma e il nome del firmatario",
         "ignoreEmptyAndPlaceholders": true,
-        "checkValue": "SI",
         "rules": [
-          "Se la firma è presente, deve essere indicato anche il tipo di firma",
-          "Il nome del firmatario dovrebbe corrispondere al dichiarante"
+          "Quando FirmaPresente è 'SI', TipoFirma deve essere diverso da 'Non presente'",
+          "Quando FirmaPresente è 'SI', NomeFirmatario dovrebbe essere compilato"
         ]
       },
       {
         "condition": {
           "allOf": [
             "SocioPersonaGiuridica.RagioneSociale",
-            "SocioPersonaGiuridica.CodiceFiscalePartitaIVA",
-            "SocioPersonaGiuridica.SedeLegale.Citta",
-            "SocioPersonaGiuridica.SedeLegale.Indirizzo"
+            "SocioPersonaGiuridica.CodiceFiscalePartitaIVA"
           ]
         },
-        "message": "Se presente un socio persona giuridica, i suoi dati devono essere completi",
+        "message": "Se viene indicato un socio persona giuridica, devono essere presenti ragione sociale e codice fiscale/partita IVA",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Se viene indicato un socio persona giuridica, devono essere compilati: Ragione sociale, CF/P.IVA e dati della sede legale",
-          "Devono essere indicati anche gli amministratori del socio persona giuridica ai sensi dell'art. 94, comma 4"
+          "I dati del socio persona giuridica devono essere coerenti e completi",
+          "Se presente la ragione sociale, deve essere presente anche il CF/P.IVA"
         ]
       },
       {
         "condition": {
-          "allOf": [
-            "SoggettiArt94Comma3[].CognomeNome",
-            "SoggettiArt94Comma3[].CodiceFiscale",
-            "SoggettiArt94Comma3[].Qualifica",
-            "SoggettiArt94Comma3[].LuogoNascita",
-            "SoggettiArt94Comma3[].DataNascita"
-          ]
+          "consistencyCheck": {
+            "field1": "Dichiarante.NomeCognome",
+            "field2": "Firma.NomeFirmatario"
+          }
         },
-        "message": "I dati dei soggetti art. 94 comma 3 devono essere completi per ogni riga compilata",
+        "message": "Il nome del firmatario dovrebbe corrispondere al nome del dichiarante",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Per ogni soggetto indicato nella tabella art. 94 comma 3, devono essere compilati tutti i campi obbligatori",
-          "Il codice fiscale di ogni soggetto deve essere valido e di 16 caratteri"
+          "Verificare la coerenza tra il nome del dichiarante e il nome del firmatario",
+          "In caso di discrepanza, segnalare per verifica manuale"
         ]
       },
       {
         "condition": {
-          "allOf": [
-            "Impresa.CodiceFiscale",
-            "Impresa.PartitaIVA"
-          ]
+          "requiredIfPresent": {
+            "trigger": "SocioPersonaGiuridica.RagioneSociale",
+            "required": [
+              "SocioPersonaGiuridica.SedeLegale.Citta",
+              "SocioPersonaGiuridica.SedeLegale.Indirizzo",
+              "SocioPersonaGiuridica.SedeLegale.CAP"
+            ]
+          }
         },
-        "message": "I dati identificativi dell'impresa devono essere completi",
+        "message": "Se è presente un socio persona giuridica, i dati della sua sede legale sono obbligatori",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Codice fiscale e Partita IVA dell'impresa sono entrambi obbligatori",
-          "Il codice fiscale può coincidere con la partita IVA per le imprese"
+          "La sede legale del socio persona giuridica deve essere completa se il socio è indicato"
         ]
       },
       {
         "condition": {
-          "allOf": [
-            "Documento.TitoloAllegato",
-            "Documento.Oggetto"
+          "arrayNotEmpty": "SoggettiArt94Comma3",
+          "requiredFields": [
+            "CognomeENome",
+            "CodiceFiscale",
+            "Qualifica",
+            "LuogoNascita",
+            "DataNascita"
           ]
         },
-        "message": "I dati identificativi del documento devono essere presenti",
+        "message": "Ogni soggetto nell'elenco Art. 94 Comma 3 deve avere tutti i dati obbligatori compilati",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Il titolo dell'allegato e l'oggetto della procedura sono obbligatori per identificare il documento"
+          "Per ogni soggetto: cognome e nome, codice fiscale, qualifica, luogo e data di nascita sono obbligatori",
+          "I codici fiscali devono essere nel formato corretto di 16 caratteri"
+        ]
+      },
+      {
+        "condition": {
+          "arrayNotEmpty": "SocioPersonaGiuridica.AmministratoriSocio",
+          "requiredFields": [
+            "CognomeENome",
+            "CodiceFiscale",
+            "Qualifica",
+            "LuogoNascita",
+            "DataNascita"
+          ]
+        },
+        "message": "Ogni amministratore del socio persona giuridica deve avere tutti i dati obbligatori compilati",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Per ogni amministratore: cognome e nome, codice fiscale, qualifica, luogo e data di nascita sono obbligatori",
+          "I codici fiscali devono essere nel formato corretto di 16 caratteri"
+        ]
+      },
+      {
+        "condition": {
+          "conditionalRequired": {
+            "if": {
+              "field": "Impresa.FormaGiuridica",
+              "operator": "==",
+              "value": "Altro"
+            },
+            "then": {
+              "required": "Impresa.FormaGiuridicaAltro"
+            }
+          }
+        },
+        "message": "Se la forma giuridica è 'Altro', è necessario specificare quale",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Il campo FormaGiuridicaAltro è obbligatorio quando FormaGiuridica è 'Altro'"
         ]
       }
     ]
