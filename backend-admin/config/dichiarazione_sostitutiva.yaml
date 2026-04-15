@@ -7,4 +7,738 @@ analyzer_id: dichiarazione_sostitutiva
 is_man_interesse: false
 
 validation_rules: |
-  {}
+  {
+    "rules": [
+      {
+        "field": "Documento.TitoloAllegato",
+        "label_field": "Titolo Allegato",
+        "required": false,
+        "pattern": "^[A-Za-z0-9\\s]+$",
+        "formatMessage": "Il titolo dell'allegato deve contenere solo lettere, numeri e spazi"
+      },
+      {
+        "field": "Documento.CodiceAllegato",
+        "label_field": "Codice Allegato",
+        "required": false,
+        "pattern": "^[A-Z]{1,5}$",
+        "formatMessage": "Il codice allegato deve essere composto da 1 a 5 lettere maiuscole"
+      },
+      {
+        "field": "Documento.TipoDocumento",
+        "label_field": "Tipo Documento",
+        "required": true,
+        "requiredMessage": "Il tipo di documento è obbligatorio"
+      },
+      {
+        "field": "Documento.RiferimentoNormativo",
+        "label_field": "Riferimento Normativo",
+        "required": false
+      },
+      {
+        "field": "Documento.OggettoProcedura",
+        "label_field": "Oggetto Procedura",
+        "required": true,
+        "requiredMessage": "L'oggetto della procedura è obbligatorio"
+      },
+      {
+        "field": "Dichiarante.NomeCognome",
+        "label_field": "Nome e Cognome Dichiarante",
+        "required": true,
+        "requiredMessage": "Il nome e cognome del dichiarante sono obbligatori",
+        "pattern": "^[A-Za-zÀ-ÿ\\s']+$",
+        "formatMessage": "Il nome e cognome devono contenere solo lettere e spazi"
+      },
+      {
+        "field": "Dichiarante.DataNascita",
+        "label_field": "Data di Nascita Dichiarante",
+        "required": true,
+        "requiredMessage": "La data di nascita del dichiarante è obbligatoria",
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di nascita deve essere nel formato gg/mm/aaaa"
+      },
+      {
+        "field": "Dichiarante.LuogoNascita",
+        "label_field": "Luogo di Nascita Dichiarante",
+        "required": true,
+        "requiredMessage": "Il luogo di nascita del dichiarante è obbligatorio"
+      },
+      {
+        "field": "Dichiarante.ProvinciaNascita",
+        "label_field": "Provincia di Nascita Dichiarante",
+        "required": true,
+        "requiredMessage": "La provincia di nascita del dichiarante è obbligatoria",
+        "pattern": "^[A-Z]{2}$",
+        "formatMessage": "La provincia deve essere una sigla di 2 lettere maiuscole"
+      },
+      {
+        "field": "Dichiarante.Qualifica",
+        "label_field": "Qualifica Dichiarante",
+        "required": true,
+        "requiredMessage": "La qualifica del dichiarante è obbligatoria",
+        "enum": [
+          "Titolare di impresa individuale",
+          "Legale Rappresentante",
+          "Procuratore",
+          "Amministratore Delegato",
+          "Socio Amministratore",
+          "Direttore Tecnico",
+          "Altro"
+        ]
+      },
+      {
+        "field": "Dichiarante.EstremiProcura",
+        "label_field": "Estremi Procura",
+        "required": false,
+        "requiredIf": {
+          "field": "Dichiarante.Qualifica",
+          "operator": "==",
+          "value": "Procuratore"
+        },
+        "requiredMessage": "Gli estremi della procura sono obbligatori per i procuratori"
+      },
+      {
+        "field": "Impresa.RagioneSociale",
+        "label_field": "Ragione Sociale Impresa",
+        "required": true,
+        "requiredMessage": "La ragione sociale dell'impresa è obbligatoria"
+      },
+      {
+        "field": "Impresa.FormaGiuridica",
+        "label_field": "Forma Giuridica Impresa",
+        "required": true,
+        "requiredMessage": "La forma giuridica dell'impresa è obbligatoria",
+        "enum": [
+          "IMPRESA INDIVIDUALE",
+          "SOCIETÀ IN NOME COLLETTIVO",
+          "SOCIETÀ IN ACCOMANDITA SEMPLICE",
+          "SOCIETÀ A RESPONSABILITÀ LIMITATA",
+          "SOCIETÀ PER AZIONI",
+          "SOCIETÀ COOPERATIVA",
+          "CONSORZIO",
+          "ALTRO"
+        ]
+      },
+      {
+        "field": "Impresa.FormaGiuridicaAltro",
+        "label_field": "Forma Giuridica Altro",
+        "required": false,
+        "requiredIf": {
+          "field": "Impresa.FormaGiuridica",
+          "operator": "==",
+          "value": "ALTRO"
+        },
+        "requiredMessage": "Specificare la forma giuridica se selezionato 'ALTRO'"
+      },
+      {
+        "field": "Impresa.CodiceFiscale",
+        "label_field": "Codice Fiscale Impresa",
+        "required": true,
+        "requiredMessage": "Il codice fiscale dell'impresa è obbligatorio",
+        "pattern": "^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$|^[0-9]{11}$",
+        "formatMessage": "Il codice fiscale deve essere di 16 caratteri alfanumerici (persona fisica) o 11 cifre (persona giuridica)"
+      },
+      {
+        "field": "Impresa.PartitaIVA",
+        "label_field": "Partita IVA Impresa",
+        "required": true,
+        "requiredMessage": "La partita IVA dell'impresa è obbligatoria",
+        "pattern": "^[0-9]{11}$",
+        "formatMessage": "La partita IVA deve essere composta da esattamente 11 cifre"
+      },
+      {
+        "field": "Impresa.PartitaIVAGruppo",
+        "label_field": "Partita IVA di Gruppo",
+        "required": false,
+        "pattern": "^[0-9]{11}$",
+        "formatMessage": "La partita IVA di gruppo deve essere composta da esattamente 11 cifre"
+      },
+      {
+        "field": "Impresa.SedeLegale.Nazione",
+        "label_field": "Nazione Sede Legale",
+        "required": true,
+        "requiredMessage": "La nazione della sede legale è obbligatoria"
+      },
+      {
+        "field": "Impresa.SedeLegale.Citta",
+        "label_field": "Città Sede Legale",
+        "required": true,
+        "requiredMessage": "La città della sede legale è obbligatoria"
+      },
+      {
+        "field": "Impresa.SedeLegale.Provincia",
+        "label_field": "Provincia Sede Legale",
+        "required": true,
+        "requiredMessage": "La provincia della sede legale è obbligatoria",
+        "pattern": "^[A-Z]{2}$",
+        "formatMessage": "La provincia deve essere una sigla di 2 lettere maiuscole"
+      },
+      {
+        "field": "Impresa.SedeLegale.Indirizzo",
+        "label_field": "Indirizzo Sede Legale",
+        "required": true,
+        "requiredMessage": "L'indirizzo della sede legale è obbligatorio"
+      },
+      {
+        "field": "Impresa.SedeLegale.CAP",
+        "label_field": "CAP Sede Legale",
+        "required": true,
+        "requiredMessage": "Il CAP della sede legale è obbligatorio",
+        "pattern": "^[0-9]{5}$",
+        "formatMessage": "Il CAP deve essere composto da esattamente 5 cifre"
+      },
+      {
+        "field": "Impresa.Contatti.Telefono",
+        "label_field": "Telefono Impresa",
+        "required": false,
+        "pattern": "^[\\+]?[0-9\\s\\-\\/]{6,20}$",
+        "formatMessage": "Il numero di telefono deve contenere solo cifre, spazi, trattini o barre (6-20 caratteri)"
+      },
+      {
+        "field": "Impresa.Contatti.Email",
+        "label_field": "Email Impresa",
+        "required": false,
+        "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
+        "formatMessage": "L'indirizzo email non è valido"
+      },
+      {
+        "field": "Impresa.Contatti.PEC",
+        "label_field": "PEC Impresa",
+        "required": true,
+        "requiredMessage": "L'indirizzo PEC dell'impresa è obbligatorio",
+        "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
+        "formatMessage": "L'indirizzo PEC non è valido"
+      },
+      {
+        "field": "Dichiarazioni.Punto1_RequisitiUE",
+        "label_field": "Punto 1 - Requisiti UE",
+        "required": false,
+        "enum": [
+          "Selezionato",
+          "Non selezionato"
+        ]
+      },
+      {
+        "field": "Dichiarazioni.Punto2_IscrizioneAlboCooperative",
+        "label_field": "Punto 2 - Iscrizione Albo Cooperative",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto3_AttoCostitutivo",
+        "label_field": "Punto 3 - Atto Costitutivo",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto4_ImpresePartecipanti",
+        "label_field": "Punto 4 - Imprese Partecipanti",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto4_ImpresePartecipanti[].Denominazione",
+        "label_field": "Denominazione Impresa Partecipante",
+        "required": true,
+        "requiredMessage": "La denominazione dell'impresa partecipante è obbligatoria"
+      },
+      {
+        "field": "Dichiarazioni.Punto4_ImpresePartecipanti[].CodiceFiscalePartitaIVA",
+        "label_field": "CF/P.IVA Impresa Partecipante",
+        "required": true,
+        "requiredMessage": "Il codice fiscale o partita IVA dell'impresa partecipante è obbligatorio",
+        "pattern": "^[A-Z0-9]{11,16}$",
+        "formatMessage": "Il codice fiscale/partita IVA deve essere di 11-16 caratteri alfanumerici"
+      },
+      {
+        "field": "Dichiarazioni.Punto4_ImpresePartecipanti[].IndirizzoSede",
+        "label_field": "Indirizzo Sede Impresa Partecipante",
+        "required": true,
+        "requiredMessage": "L'indirizzo della sede dell'impresa partecipante è obbligatorio"
+      },
+      {
+        "field": "Dichiarazioni.Punto4_Altro",
+        "label_field": "Punto 4 - Altro",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto4_1_MandatariaDesignata",
+        "label_field": "Punto 4.1 - Mandataria Designata",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto4_2_ConsorziateEsecutrici",
+        "label_field": "Punto 4.2 - Consorziate Esecutrici",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto4_2_ConsorziateEsecutrici[].Denominazione",
+        "label_field": "Denominazione Consorziata Esecutrice",
+        "required": true,
+        "requiredMessage": "La denominazione della consorziata esecutrice è obbligatoria"
+      },
+      {
+        "field": "Dichiarazioni.Punto4_2_ConsorziateEsecutrici[].CodiceFiscalePartitaIVA",
+        "label_field": "CF/P.IVA Consorziata Esecutrice",
+        "required": true,
+        "requiredMessage": "Il codice fiscale o partita IVA della consorziata è obbligatorio",
+        "pattern": "^[A-Z0-9]{11,16}$",
+        "formatMessage": "Il codice fiscale/partita IVA deve essere di 11-16 caratteri alfanumerici"
+      },
+      {
+        "field": "Dichiarazioni.Punto4_2_ConsorziateEsecutrici[].IndirizzoSede",
+        "label_field": "Indirizzo Sede Consorziata Esecutrice",
+        "required": true,
+        "requiredMessage": "L'indirizzo della sede della consorziata è obbligatorio"
+      },
+      {
+        "field": "Dichiarazioni.Punto4_2_Altro",
+        "label_field": "Punto 4.2 - Altro",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto4_3_RipartizioneQuote",
+        "label_field": "Punto 4.3 - Ripartizione Quote",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto4_3_RipartizioneQuote[].Attivita",
+        "label_field": "Attività/Impresa Ripartizione",
+        "required": true,
+        "requiredMessage": "L'attività o impresa nella ripartizione è obbligatoria"
+      },
+      {
+        "field": "Dichiarazioni.Punto4_3_RipartizioneQuote[].QuotaPercentuale",
+        "label_field": "Quota Percentuale",
+        "required": true,
+        "requiredMessage": "La quota percentuale è obbligatoria",
+        "pattern": "^[0-9]{1,3}%?$",
+        "formatMessage": "La quota percentuale deve essere un numero seguito opzionalmente da %"
+      },
+      {
+        "field": "Dichiarazioni.Punto4_3_Altro",
+        "label_field": "Punto 4.3 - Altro",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto5_ObblighiLegge68",
+        "label_field": "Punto 5 - Obblighi Legge 68/1999",
+        "required": true,
+        "requiredMessage": "La dichiarazione sugli obblighi della Legge 68/1999 è obbligatoria",
+        "enum": [
+          "in regola",
+          "non soggetto"
+        ]
+      },
+      {
+        "field": "Dichiarazioni.Punto6_Pantouflage",
+        "label_field": "Punto 6 - Pantouflage",
+        "required": false,
+        "requiredMessage": "La dichiarazione sul pantouflage è obbligatoria",
+        "enum": [
+          "SI",
+          "NO"
+        ]
+      },
+      {
+        "field": "Dichiarazioni.Punto6_DettagliPantouflage",
+        "label_field": "Punto 6 - Dettagli Pantouflage",
+        "required": false,
+        "requiredIf": {
+          "field": "Dichiarazioni.Punto6_Pantouflage",
+          "operator": "==",
+          "value": "SI"
+        },
+        "requiredMessage": "I dettagli sul pantouflage sono obbligatori in caso positivo"
+      },
+      {
+        "field": "Dichiarazioni.Punto7_WhiteList",
+        "label_field": "Punto 7 - White List",
+        "required": true,
+        "requiredMessage": "La dichiarazione sulla White List è obbligatoria",
+        "enum": [
+          "di essere iscritto",
+          "di aver presentato domanda di iscrizione",
+          "di non essere iscritto"
+        ]
+      },
+      {
+        "field": "Dichiarazioni.Punto7_PrefetturaCompetente",
+        "label_field": "Punto 7 - Prefettura Competente",
+        "required": false,
+        "requiredIf": {
+          "field": "Dichiarazioni.Punto7_WhiteList",
+          "operator": "in",
+          "value": [
+            "di essere iscritto",
+            "di aver presentato domanda di iscrizione"
+          ]
+        },
+        "requiredMessage": "La Prefettura competente è obbligatoria se iscritti o in attesa di iscrizione"
+      },
+      {
+        "field": "Dichiarazioni.Punto7_DataScadenza",
+        "label_field": "Punto 7 - Data Scadenza/Presentazione",
+        "required": false,
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data deve essere nel formato gg/mm/aaaa"
+      },
+      {
+        "field": "Dichiarazioni.Punto8_CauseEsclusione",
+        "label_field": "Punto 8 - Cause di Esclusione",
+        "required": true,
+        "requiredMessage": "La dichiarazione sulle cause di esclusione è obbligatoria",
+        "enum": [
+          "non sussistono",
+          "sussistono, ha adottato misure sufficienti",
+          "sussistono, non ha adottato misure sufficienti"
+        ]
+      },
+      {
+        "field": "Dichiarazioni.Punto8_MisureAdottate",
+        "label_field": "Punto 8 - Misure Adottate",
+        "required": false,
+        "requiredIf": {
+          "field": "Dichiarazioni.Punto8_CauseEsclusione",
+          "operator": "==",
+          "value": "sussistono, ha adottato misure sufficienti"
+        },
+        "requiredMessage": "La descrizione delle misure adottate è obbligatoria"
+      },
+      {
+        "field": "Dichiarazioni.Punto8_MisureNonAdottate",
+        "label_field": "Punto 8 - Ragioni Misure Non Adottate",
+        "required": false,
+        "requiredIf": {
+          "field": "Dichiarazioni.Punto8_CauseEsclusione",
+          "operator": "==",
+          "value": "sussistono, non ha adottato misure sufficienti"
+        },
+        "requiredMessage": "Le ragioni per cui non sono state adottate misure sono obbligatorie"
+      },
+      {
+        "field": "Dichiarazioni.Punto9_Classe",
+        "label_field": "Punto 9 - Classe Iscrizione Albo",
+        "required": false
+      },
+      {
+        "field": "Dichiarazioni.Punto9_Avvalimento",
+        "label_field": "Punto 9 - Avvalimento",
+        "required": true,
+        "requiredMessage": "La dichiarazione sull'avvalimento è obbligatoria",
+        "enum": [
+          "SI",
+          "NO"
+        ]
+      },
+      {
+        "field": "Dichiarazioni.Punto9_ImpreseAusiliarie",
+        "label_field": "Punto 9 - Imprese Ausiliarie",
+        "required": false,
+        "requiredIf": {
+          "field": "Dichiarazioni.Punto9_Avvalimento",
+          "operator": "==",
+          "value": "SI"
+        },
+        "requiredMessage": "Le imprese ausiliarie sono obbligatorie in caso di avvalimento"
+      },
+      {
+        "field": "Dichiarazioni.Punto10_ModificheSoggetti",
+        "label_field": "Punto 10 - Modifiche Soggetti",
+        "required": true,
+        "requiredMessage": "La dichiarazione sulle modifiche ai soggetti è obbligatoria",
+        "enum": [
+          "SI",
+          "NO"
+        ]
+      },
+      {
+        "field": "Dichiarazioni.Punto10_DettagliModifiche",
+        "label_field": "Punto 10 - Dettagli Modifiche",
+        "required": false,
+        "requiredIf": {
+          "field": "Dichiarazioni.Punto10_ModificheSoggetti",
+          "operator": "==",
+          "value": "SI"
+        },
+        "requiredMessage": "I dettagli delle modifiche sono obbligatori in caso positivo"
+      },
+      {
+        "field": "PosizioniAssicurativeContributive.INPS.Sede",
+        "label_field": "Sede INPS",
+        "required": true,
+        "requiredMessage": "La sede INPS è obbligatoria"
+      },
+      {
+        "field": "PosizioniAssicurativeContributive.INPS.Matricola",
+        "label_field": "Matricola INPS",
+        "required": true,
+        "requiredMessage": "La matricola INPS è obbligatoria",
+        "pattern": "^[0-9]+$",
+        "formatMessage": "La matricola INPS deve contenere solo cifre"
+      },
+      {
+        "field": "PosizioniAssicurativeContributive.INAIL.Sede",
+        "label_field": "Sede INAIL",
+        "required": true,
+        "requiredMessage": "La sede INAIL è obbligatoria"
+      },
+      {
+        "field": "PosizioniAssicurativeContributive.INAIL.Matricola",
+        "label_field": "Matricola INAIL",
+        "required": true,
+        "requiredMessage": "La matricola INAIL è obbligatoria",
+        "pattern": "^[0-9]+$",
+        "formatMessage": "La matricola INAIL deve contenere solo cifre"
+      },
+      {
+        "field": "PosizioniAssicurativeContributive.CassaEdili.Sede",
+        "label_field": "Sede Cassa Edili",
+        "required": false
+      },
+      {
+        "field": "PosizioniAssicurativeContributive.CassaEdili.Matricola",
+        "label_field": "Matricola Cassa Edili",
+        "required": false,
+        "pattern": "^[0-9]+$",
+        "formatMessage": "La matricola Cassa Edili deve contenere solo cifre"
+      },
+      {
+        "field": "AltreInformazioni.Punto12_SedeAgenziaEntrate",
+        "label_field": "Punto 12 - Sede Agenzia Entrate",
+        "required": true,
+        "requiredMessage": "La sede dell'Agenzia delle Entrate è obbligatoria"
+      },
+      {
+        "field": "AltreInformazioni.Punto13_SedeProvincia",
+        "label_field": "Punto 13 - Sede Provincia",
+        "required": false
+      },
+      {
+        "field": "AltreInformazioni.Punto13_NumeroFax",
+        "label_field": "Punto 13 - Numero Fax Provincia",
+        "required": false,
+        "pattern": "^[0-9\\-\\/]+$",
+        "formatMessage": "Il numero di fax deve contenere solo cifre, trattini o barre"
+      },
+      {
+        "field": "AltreInformazioni.Punto14_TipologiaCCNL",
+        "label_field": "Punto 14 - Tipologia CCNL",
+        "required": true,
+        "requiredMessage": "La tipologia di CCNL applicato è obbligatoria"
+      },
+      {
+        "field": "AltreInformazioni.Punto14_NumeroAddettiServizio",
+        "label_field": "Punto 14 - Numero Addetti Servizio",
+        "required": false
+      },
+      {
+        "field": "Firma.LuogoEData",
+        "label_field": "Luogo e Data Firma",
+        "required": true,
+        "requiredMessage": "Il luogo e la data di sottoscrizione sono obbligatori"
+      },
+      {
+        "field": "Firma.FirmaPresente",
+        "label_field": "Firma Presente",
+        "required": true,
+        "requiredMessage": "L'indicazione sulla presenza della firma è obbligatoria",
+        "enum": [
+          "SI",
+          "NO"
+        ]
+      },
+      {
+        "field": "Firma.TipoFirma",
+        "label_field": "Tipo Firma",
+        "required": true,
+        "requiredMessage": "Il tipo di firma è obbligatorio",
+        "enum": [
+          "Firma autografa",
+          "Firma digitale",
+          "Firma autografa e digitale",
+          "Testo nell area firma",
+          "Non presente"
+        ]
+      },
+      {
+        "field": "Firma.NomeFirmatario",
+        "label_field": "Nome Firmatario",
+        "required": false,
+        "displayOnlyIf": {
+          "field": "Firma.FirmaPresente",
+          "operator": "==",
+          "value": "SI"
+        }
+      }
+    ],
+    "crossFieldRules": [
+      {
+        "condition": {
+          "anyOf": [
+            "Impresa.Contatti.Email",
+            "Impresa.Contatti.PEC"
+          ]
+        },
+        "message": "Deve essere presente almeno un indirizzo email o PEC dell'impresa",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Almeno uno tra Email e PEC deve essere compilato per i contatti dell'impresa"
+        ]
+      },
+      {
+        "condition": {
+          "allOf": [
+            "Impresa.SedeLegale.Nazione",
+            "Impresa.SedeLegale.Citta",
+            "Impresa.SedeLegale.Provincia",
+            "Impresa.SedeLegale.Indirizzo",
+            "Impresa.SedeLegale.CAP"
+          ]
+        },
+        "message": "L'indirizzo della sede legale deve essere completo di tutti i campi",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "La sede legale deve includere: Nazione, Città, Provincia, Indirizzo e CAP"
+        ]
+      },
+      {
+        "condition": {
+          "allOf": [
+            "Dichiarante.NomeCognome",
+            "Dichiarante.DataNascita",
+            "Dichiarante.LuogoNascita",
+            "Dichiarante.ProvinciaNascita",
+            "Dichiarante.Qualifica"
+          ]
+        },
+        "message": "I dati anagrafici del dichiarante devono essere completi",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Il dichiarante deve avere: Nome e Cognome, Data di nascita, Luogo di nascita, Provincia di nascita e Qualifica"
+        ]
+      },
+      {
+        "condition": {
+          "allOf": [
+            "PosizioniAssicurativeContributive.INPS.Sede",
+            "PosizioniAssicurativeContributive.INPS.Matricola"
+          ]
+        },
+        "message": "La posizione INPS deve essere completa di sede e matricola",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Se presente la posizione INPS, devono essere indicati sia la sede che la matricola"
+        ]
+      },
+      {
+        "condition": {
+          "allOf": [
+            "PosizioniAssicurativeContributive.INAIL.Sede",
+            "PosizioniAssicurativeContributive.INAIL.Matricola"
+          ]
+        },
+        "message": "La posizione INAIL deve essere completa di sede e matricola",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Se presente la posizione INAIL, devono essere indicati sia la sede che la matricola"
+        ]
+      },
+      {
+        "condition": {
+          "allOf": [
+            "PosizioniAssicurativeContributive.CassaEdili.Sede",
+            "PosizioniAssicurativeContributive.CassaEdili.Matricola"
+          ]
+        },
+        "message": "La posizione Cassa Edili deve essere completa di sede e matricola",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Se presente la posizione Cassa Edili, devono essere indicati sia la sede che la matricola"
+        ]
+      },
+      {
+        "condition": {
+          "checkValue": "SI"
+        },
+        "field": "Firma.FirmaPresente",
+        "message": "Il documento deve essere firmato",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "La dichiarazione sostitutiva deve essere sottoscritta dal dichiarante",
+          "La firma può essere autografa, digitale o entrambe"
+        ]
+      },
+      {
+        "condition": {
+          "dependentFields": {
+            "trigger": "Dichiarazioni.Punto9_Avvalimento",
+            "triggerValue": "SI",
+            "required": [
+              "Dichiarazioni.Punto9_ImpreseAusiliarie"
+            ]
+          }
+        },
+        "message": "In caso di avvalimento devono essere indicate le imprese ausiliarie",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Se l'impresa ricorre all'avvalimento (Punto 9 = SI), deve indicare la ragione sociale delle imprese ausiliarie"
+        ]
+      },
+      {
+        "condition": {
+          "dependentFields": {
+            "trigger": "Dichiarazioni.Punto6_Pantouflage",
+            "triggerValue": "SI",
+            "required": [
+              "Dichiarazioni.Punto6_DettagliPantouflage"
+            ]
+          }
+        },
+        "message": "In caso di pantouflage devono essere forniti i dettagli",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Se sussiste la condizione di pantouflage (Punto 6 = SI), devono essere forniti i dettagli"
+        ]
+      },
+      {
+        "condition": {
+          "dependentFields": {
+            "trigger": "Dichiarazioni.Punto10_ModificheSoggetti",
+            "triggerValue": "SI",
+            "required": [
+              "Dichiarazioni.Punto10_DettagliModifiche"
+            ]
+          }
+        },
+        "message": "In caso di modifiche ai soggetti devono essere forniti i dettagli",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Se sono intervenute modifiche ai soggetti (Punto 10 = SI), devono essere forniti i dettagli delle modifiche"
+        ]
+      },
+      {
+        "condition": {
+          "consistencyCheck": {
+            "field1": "Dichiarante.NomeCognome",
+            "field2": "Firma.NomeFirmatario"
+          }
+        },
+        "message": "Il nome del dichiarante deve corrispondere al nome del firmatario",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Il nome e cognome del dichiarante deve essere coerente con il nome del firmatario del documento"
+        ]
+      },
+      {
+        "condition": {
+          "arrayNotEmpty": "Dichiarazioni.Punto4_3_RipartizioneQuote",
+          "sumCheck": {
+            "field": "QuotaPercentuale",
+            "expectedSum": 100
+          }
+        },
+        "message": "La somma delle quote percentuali deve essere pari al 100%",
+        "ignoreEmptyAndPlaceholders": true,
+        "rules": [
+          "Nel Punto 4.3, la ripartizione delle quote tra le imprese del raggruppamento deve totalizzare il 100%"
+        ]
+      }
+    ]
+  }
