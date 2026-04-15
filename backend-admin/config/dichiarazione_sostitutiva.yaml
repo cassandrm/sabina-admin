@@ -1,6 +1,6 @@
 label_name : Dichiarazione sostitutiva
 
-pattern: ALLEGATO B, dichiarazione sostitutiva
+pattern: ALLEGATO 2
 
 analyzer_id: dichiarazione_sostitutiva
 
