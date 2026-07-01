@@ -224,6 +224,33 @@ class ValidationBaseService(ABC):
         return decoded_errors, valid_fields
 
 
+    def _resolve_field_values(self, data, field_path):
+        """
+        Restituisce tutti i valori per un field path, gestendo la notazione array [].
+        Es: "Lotti[].Partecipazione" -> lista con tutti i valori di Partecipazione.
+        Per path senza [], restituisce una lista con il singolo valore (se non None).
+        """
+        if '[]' not in field_path:
+            val = self._valida_campo_nested(data, field_path)
+            return [val] if val is not None else []
+
+        bracket_idx = field_path.index('[]')
+        array_path = field_path[:bracket_idx]
+        remainder = field_path[bracket_idx + 2:]  # "" or ".SomePath"
+        item_field_path = remainder.lstrip('.')
+
+        array_data = self._valida_campo_nested(data, array_path)
+        if not isinstance(array_data, list):
+            return []
+
+        values = []
+        for item in array_data:
+            val = self._valida_campo_nested(item, item_field_path) if item_field_path else item
+            if val is not None:
+                values.append(val)
+        return values
+
+
     def _valida_dati_complessi(self, data, schema):
 
         errors = []
@@ -418,7 +445,15 @@ class ValidationBaseService(ABC):
 
             if 'anyOf' in condition:
                 fields = condition['anyOf']
-                if not any(self._valida_campo_nested(data, f) for f in fields):
+                check_value = cross_rule.get('checkValue')
+
+                def _field_satisfies(field_path, cv=check_value):
+                    values = self._resolve_field_values(data, field_path)
+                    if cv is not None:
+                        return any(v == cv for v in values)
+                    return any(values)
+
+                if not any(_field_satisfies(f) for f in fields):
                     errors.append({'field': None, 'label_field': None, 'value': None, 'rule_description': cross_rule.get('message', 'Errore di validazione cross-field.'), 'failed_check': 'cross_field'})
 
             if 'allOf' in condition:

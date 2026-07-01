@@ -566,11 +566,12 @@ async def improve_rules_with_ai(
     logger.info(f"{operation_label} delle regole di validazione per lo schema '{schema_label}' (ID: {schema_id})")
 
     try:
-        import boto3
+        from strands import Agent
+        from strands.models import BedrockModel
     except ImportError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Pacchetto 'boto3' non installato. Aggiungere boto3 alle dipendenze."
+            detail="Pacchetto 'strands' non installato. Aggiungere strands-agents alle dipendenze."
         )
 
     # Load generation prompt from rules.yaml as reference context
@@ -605,20 +606,15 @@ async def improve_rules_with_ai(
     )
 
     try:
-        client = boto3.client(
-            "bedrock-runtime",
+        bedrock_model = BedrockModel(
+            model_id=settings.model_id,
             region_name=settings.aws_region,
-            aws_access_key_id=settings.aws_access_key_id,
-            aws_secret_access_key=settings.aws_secret_access_key,
+            temperature=0.2,
+            max_tokens=16000,
         )
-        response = client.converse(
-            modelId=settings.model_id,
-            system=[{"text": SYSTEM_PROMPT}],
-            messages=[{"role": "user", "content": [{"text": user_message}]}],
-            inferenceConfig={"temperature": 0.2, "maxTokens": 16000},
-        )
-        raw = response["output"]["message"]["content"][0]["text"]
-        # Strip potential markdown fences
+        agent = Agent(model=bedrock_model, system_prompt=SYSTEM_PROMPT)
+        response = agent(user_message)
+        raw = str(response) if not isinstance(response, str) else response
         raw = raw.strip()
         if raw.startswith("```"):
             raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
