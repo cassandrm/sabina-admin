@@ -1,6 +1,6 @@
-label_name: Manifestazione Interesse
+label_name : Manifestazione di interesse
 
-pattern: ALLEGATO [X]
+pattern: ALLEGATO 1
 
 analyzer_id: manifestazione_interesse
 
@@ -77,16 +77,21 @@ validation_rules: |
         "required": true,
         "requiredMessage": "La qualifica del sottoscrittore è obbligatoria",
         "enum": [
-          "Amministratore Delegato",
-          "Legale Rappresentante",
           "Procuratore",
-          "Titolare",
-          "Socio",
-          "Direttore Generale",
-          "Presidente",
-          "Altro"
+          "Amministratore Delegato",
+          "Presidente del CdA",
+          "Amministratore Unico",
+          "Titolare di Impresa Individuale",
+          "Socio Amministratore",
+          "Socio Accomandatario",
+          "Consigliere",
+          "Membro del Comitato Esecutivo",
+          "Institore/Direttore Generale",
+          "Professionista Singolo",
+          "Legale Rappresentante",
+          "Partner Rappresentante di Associazione Professionale (Studio)"
         ],
-        "formatMessage": "La qualifica deve essere uno dei valori ammessi: Amministratore Delegato, Legale Rappresentante, Procuratore, Titolare, Socio, Direttore Generale, Presidente, Altro"
+        "formatMessage": "La qualifica deve essere uno dei valori ammessi: Procuratore, Amministratore Delegato, Presidente del CdA, Amministratore Unico, Titolare di Impresa Individuale, Socio Amministratore, Socio Accomandatario, Consigliere, Membro del Comitato Esecutivo, Institore/Direttore Generale, Professionista Singolo, Legale Rappresentante, Partner Rappresentante di Associazione Professionale (Studio)"
       },
       {
         "field": "Sottoscrittore.EstremiProcura",
@@ -163,7 +168,7 @@ validation_rules: |
           "Consorzio",
           "Altro"
         ],
-        "formatMessage": "La forma giuridica deve essere uno dei valori ammessi"
+        "formatMessage": "La forma giuridica deve essere uno dei valori ammessi: Società per Azioni, Società a Responsabilità Limitata, Società in Accomandita Semplice, Società in Nome Collettivo, Ditta Individuale, Cooperativa, Consorzio,Altro"
       },
       {
         "field": "Azienda.FormaGiuridicaAltro",
@@ -186,22 +191,44 @@ validation_rules: |
       {
         "field": "Azienda.CodiceFiscale",
         "label_field": "Codice Fiscale Azienda",
-        "required": true,
-        "requiredMessage": "Il codice fiscale dell'impresa è obbligatorio",
+        "required": false,
+        "requiredMessage": "Il codice fiscale dell'impresa è obbligatorio per le aziende italiane",
         "pattern": "^[A-Za-z]{6}[0-9]{2}[A-Za-z][0-9]{2}[A-Za-z][0-9]{3}[A-Za-z]$|^[0-9]{11}$",
         "formatMessage": "Il codice fiscale deve essere di 16 caratteri (persone fisiche) o 11 cifre (persone giuridiche)",
         "minLength": 11,
-        "maxLength": 16
+        "maxLength": 16,
+        "requiredIf": {
+          "field": "Azienda.SedeLegale.Nazione",
+          "operator": "in",
+          "value": [
+            "IT",
+            "ITALIA",
+            "ITALY",
+            "ITA",
+            "ITALIANA"
+          ]
+        }
       },
       {
         "field": "Azienda.PartitaIVA",
         "label_field": "Partita IVA",
-        "required": true,
-        "requiredMessage": "La partita IVA è obbligatoria",
+        "required": false,
+        "requiredMessage": "La partita IVA è obbligatoria per le aziende italiane",
         "pattern": "^[0-9]{11}$",
         "formatMessage": "La partita IVA deve essere composta da esattamente 11 cifre",
         "minLength": 11,
-        "maxLength": 11
+        "maxLength": 11,
+        "requiredIf": {
+          "field": "Azienda.SedeLegale.Nazione",
+          "operator": "in",
+          "value": [
+            "IT",
+            "ITALIA",
+            "ITALY",
+            "ITA",
+            "ITALIANA"
+          ]
+        }
       },
       {
         "field": "Azienda.PartitaIVAGruppo",
@@ -250,7 +277,7 @@ validation_rules: |
       {
         "field": "Azienda.SedeLegale.CAP",
         "label_field": "CAP Sede Legale",
-        "required": true,
+        "required": false,
         "requiredMessage": "Il CAP della sede legale è obbligatorio",
         "pattern": "^[0-9]{5}$",
         "formatMessage": "Il CAP deve essere composto da esattamente 5 cifre",
@@ -276,7 +303,7 @@ validation_rules: |
       {
         "field": "Azienda.Contatti.PEC",
         "label_field": "PEC",
-        "required": true,
+        "required": false,
         "requiredMessage": "L'indirizzo PEC è obbligatorio",
         "pattern": "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$",
         "formatMessage": "L'indirizzo PEC deve essere in un formato valido (es. azienda@pec.it)"
@@ -312,15 +339,12 @@ validation_rules: |
         "required": true,
         "requiredMessage": "La forma di partecipazione è obbligatoria",
         "enum": [
-          "Impresa singola",
-          "RTI",
-          "RTP",
+          "Operatore Singolo",
+          "Raggruppamento Temporaneo Imprese / Professionisti",
           "Consorzio",
-          "GEIE",
-          "Rete di imprese",
           "Altro"
         ],
-        "formatMessage": "La forma di partecipazione deve essere uno dei valori ammessi"
+        "formatMessage": "La forma di partecipazione deve essere uno dei valori ammessi: Operatore Singolo, Raggruppamento Temporaneo Imprese / Professionisti, Consorzio, Altro"
       },
       {
         "field": "ManifestazioneInteresse.FormaPartecipazioneAltro",
@@ -354,16 +378,14 @@ validation_rules: |
           "field": "ManifestazioneInteresse.FormaPartecipazione",
           "operator": "in",
           "value": [
-            "RTI",
-            "RTP"
+            "Raggruppamento Temporaneo Imprese / Professionisti"
           ]
         },
         "displayOnlyIf": {
           "field": "ManifestazioneInteresse.FormaPartecipazione",
           "operator": "in",
           "value": [
-            "RTI",
-            "RTP"
+            "Raggruppamento Temporaneo Imprese / Professionisti"
           ]
         }
       },
@@ -371,36 +393,36 @@ validation_rules: |
         "field": "RTI_RTP.RagioneSocialeMandataria",
         "label_field": "Ragione Sociale Mandataria",
         "required": false,
-        "requiredMessage": "La ragione sociale della Mandataria è obbligatoria per i Mandanti",
+        "requiredMessage": "La ragione sociale è obbligatoria per il ruolo Mandantaria",
         "minLength": 2,
         "maxLength": 500,
         "requiredIf": {
           "field": "RTI_RTP.Ruolo",
           "operator": "==",
-          "value": "Mandante"
+          "value": "Mandataria"
         },
         "displayOnlyIf": {
-          "field": "RTI_RTP.Ruolo",
+          "field": "ManifestazioneInteresse.FormaPartecipazione",
           "operator": "==",
-          "value": "Mandante"
+          "value": "Raggruppamento Temporaneo Imprese / Professionisti"
         }
       },
       {
         "field": "RTI_RTP.PartitaIVAMandataria",
         "label_field": "Partita IVA Mandataria",
         "required": false,
-        "requiredMessage": "La partita IVA della Mandataria è obbligatoria per i Mandanti",
+        "requiredMessage": "La partita IVA è obbligatoria per il ruolo Mandantaria",
         "pattern": "^[0-9]{11}$",
         "formatMessage": "La partita IVA deve essere composta da esattamente 11 cifre",
         "requiredIf": {
           "field": "RTI_RTP.Ruolo",
           "operator": "==",
-          "value": "Mandante"
+          "value": "Mandataria"
         },
         "displayOnlyIf": {
-          "field": "RTI_RTP.Ruolo",
+          "field": "ManifestazioneInteresse.FormaPartecipazione",
           "operator": "==",
-          "value": "Mandante"
+          "value": "Raggruppamento Temporaneo Imprese / Professionisti"
         }
       },
       {
@@ -409,26 +431,23 @@ validation_rules: |
         "required": false,
         "requiredMessage": "La tipologia di RTI/RTP è obbligatoria",
         "enum": [
-          "Orizzontale",
-          "Verticale",
-          "Misto"
+          "RTI Costituito",
+          "RTI Costituendo",
+          "RTP Costituito",
+          "RTP Costituendo"
         ],
-        "formatMessage": "La tipologia deve essere 'Orizzontale', 'Verticale' o 'Misto'",
+        "formatMessage": "La tipologia di RTI/RTP deve essere uno dei valori ammessi: RTI Costituito, RTI Costituendo, RTP Costituito, RTP Costituendo",
         "requiredIf": {
           "field": "ManifestazioneInteresse.FormaPartecipazione",
           "operator": "in",
           "value": [
-            "RTI",
-            "RTP"
+            "Raggruppamento Temporaneo Imprese / Professionisti"
           ]
         },
         "displayOnlyIf": {
           "field": "ManifestazioneInteresse.FormaPartecipazione",
-          "operator": "in",
-          "value": [
-            "RTI",
-            "RTP"
-          ]
+          "operator": "==",
+          "value": "Raggruppamento Temporaneo Imprese / Professionisti"
         }
       },
       {
@@ -438,13 +457,18 @@ validation_rules: |
         "requiredMessage": "Gli estremi del contratto di mandato sono richiesti per RTI/RTP costituiti",
         "minLength": 5,
         "maxLength": 500,
-        "displayOnlyIf": {
-          "field": "ManifestazioneInteresse.FormaPartecipazione",
+        "requiredIf": {
+          "field": "RTI_RTP.TipologiaRTI_RTP",
           "operator": "in",
           "value": [
-            "RTI",
-            "RTP"
+            "RTI Costituito",
+            "RTP Costituito"
           ]
+        },
+        "displayOnlyIf": {
+          "field": "ManifestazioneInteresse.FormaPartecipazione",
+          "operator": "==",
+          "value": "Raggruppamento Temporaneo Imprese / Professionisti"
         }
       },
       {
@@ -455,10 +479,9 @@ validation_rules: |
         "enum": [
           "Consorzio",
           "Consorziata",
-          "Consorzianda",
-          "Capofila"
+          "Consorzianda di un Consorzio ordinario costituendo"
         ],
-        "formatMessage": "Il ruolo deve essere uno dei valori ammessi: Consorzio, Consorziata, Consorzianda, Capofila",
+        "formatMessage": "Il ruolo deve essere uno dei valori ammessi: Consorzio, Consorziata, Consorzianda di un Consorzio ordinario costituendo",
         "requiredIf": {
           "field": "ManifestazioneInteresse.FormaPartecipazione",
           "operator": "==",
@@ -472,9 +495,9 @@ validation_rules: |
       },
       {
         "field": "Consorzio.RagioneSocialeConsorzio",
-        "label_field": "Ragione Sociale Consorzio/Capofila",
+        "label_field": "Ragione Sociale Consorzio",
         "required": false,
-        "requiredMessage": "La ragione sociale del Consorzio/Capofila è obbligatoria",
+        "requiredMessage": "La ragione sociale del Consorzio è obbligatoria",
         "minLength": 2,
         "maxLength": 500,
         "requiredIf": {
@@ -493,9 +516,9 @@ validation_rules: |
       },
       {
         "field": "Consorzio.PartitaIVAConsorzio",
-        "label_field": "Partita IVA Consorzio/Capofila",
+        "label_field": "Partita IVA Consorzio",
         "required": false,
-        "requiredMessage": "La partita IVA del Consorzio/Capofila è obbligatoria",
+        "requiredMessage": "La partita IVA del Consorzio è obbligatoria",
         "pattern": "^[0-9]{11}$",
         "formatMessage": "La partita IVA deve essere composta da esattamente 11 cifre",
         "requiredIf": {
@@ -518,11 +541,10 @@ validation_rules: |
         "required": false,
         "requiredMessage": "La tipologia di Consorzio è obbligatoria",
         "enum": [
-          "Consorzio di cooperative di produzione e lavoro",
-          "Consorzio stabile",
-          "Consorzio ordinario",
-          "Società consortile",
-          "Altro"
+          "Consorzio Stabile",
+          "Consorzio Ordinario Costituito",
+          "Consorzio Ordinario Costituendo",
+          "Consorzio di Cooperative di produzione e lavoro"
         ],
         "formatMessage": "La tipologia deve essere uno dei valori ammessi",
         "requiredIf": {
@@ -543,6 +565,11 @@ validation_rules: |
         "requiredMessage": "Gli estremi del contratto di Consorzio sono richiesti",
         "minLength": 5,
         "maxLength": 500,
+        "requiredIf": {
+          "field": "Consorzio.TipologiaConsorzio",
+          "operator": "==",
+          "value": "Consorzio di Cooperative di produzione e lavoro"
+        },
         "displayOnlyIf": {
           "field": "ManifestazioneInteresse.FormaPartecipazione",
           "operator": "==",
@@ -584,12 +611,22 @@ validation_rules: |
         }
       },
       {
-        "field": "Firma.LuogoEData",
-        "label_field": "Luogo e Data di Sottoscrizione",
+        "field": "Firma.Luogo",
+        "label_field": "Luogo di Sottoscrizione",
         "required": false,
-        "requiredMessage": "Il luogo e la data di sottoscrizione sono obbligatori",
-        "pattern": "^.+,\\s*\\d{2}/\\d{2}/\\d{4}$|^\\d{2}/\\d{2}/\\d{4}$|^.+$",
-        "formatMessage": "Il formato deve essere 'Luogo, gg/mm/aaaa' o 'gg/mm/aaaa'"
+        "requiredMessage": "Il luogo è obbligatorio",
+        "pattern": "^[A-Za-zÀ-ÿ\\s\\'\\-\\.]+$",
+        "formatMessage": "Il luogo di sottoscrizione deve contenere solo lettere e caratteri validi",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      {
+        "field": "Firma.Data",
+        "label_field": "Data di Sottoscrizione",
+        "required": false,
+        "requiredMessage": "La data di sottoscrizione è obbligatoria",
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$",
+        "formatMessage": "La data di sottoscrizione deve essere nel formato gg/mm/aaaa"
       },
       {
         "field": "Firma.FirmaPresente",
@@ -756,14 +793,25 @@ validation_rules: |
         "condition": {
           "allOf": [
             "Azienda.RagioneSociale",
-            "Azienda.CodiceFiscale",
             "Azienda.PartitaIVA"
+          ]
+        },
+        "applyIf": {
+          "field": "Azienda.SedeLegale.Nazione",
+          "operator": "in",
+          "value": [
+            "IT",
+            "ITALIA",
+            "ITALY",
+            "ITA",
+            "ITALIANA"
           ]
         },
         "message": "I dati identificativi dell'azienda devono essere tutti presenti",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "Ragione sociale, codice fiscale e partita IVA sono obbligatori",
+          "Ragione sociale e partita IVA sono obbligatori per le aziende italiane",
+          "Il codice fiscale è obbligatorio solo per le aziende italiane (Nazione: IT, ITALIA, ITALY, ITA, ITALIANA)",
           "L'identificazione dell'impresa deve essere completa"
         ]
       },
@@ -788,10 +836,10 @@ validation_rules: |
             "Consorzio.PartitaIVAConsorzio"
           ]
         },
-        "message": "Se si indica il Consorzio/Capofila, devono essere presenti sia ragione sociale che partita IVA",
+        "message": "Se si indica il Consorzio, devono essere presenti sia ragione sociale che partita IVA",
         "ignoreEmptyAndPlaceholders": true,
         "rules": [
-          "I dati del Consorzio/Capofila devono essere completi",
+          "I dati del Consorzio devono essere completi",
           "Ragione sociale e partita IVA del Consorzio sono entrambi obbligatori per le consorziate"
         ]
       }

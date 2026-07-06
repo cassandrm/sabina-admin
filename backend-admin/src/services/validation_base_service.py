@@ -68,6 +68,11 @@ class ValidationBaseService(ABC):
         return False
 
 
+    def _val_norm(self, v):
+        """Normalizza un valore per confronto case-insensitive: strip + upper per stringhe."""
+        return v.strip().upper() if isinstance(v, str) else v
+
+
     def _enum_value_allowed(self, value, enum_list):
         """Verifica se un valore è nella lista di enum, con confronto case-insensitive per stringhe."""
         def _norm(s: str) -> str:
@@ -285,21 +290,23 @@ class ValidationBaseService(ABC):
                 )
 
                 should_display = False
-                if operator == '==' and dep_value == compare_value:
+                if operator == '==' and self._val_norm(dep_value) == self._val_norm(compare_value):
                     should_display = True
-                elif operator == '!=' and dep_value != compare_value:
+                elif operator == '!=' and self._val_norm(dep_value) != self._val_norm(compare_value):
                     should_display = True
-                elif operator == 'in' and isinstance(compare_value, list) and dep_value in compare_value:
-                    should_display = True
-                elif operator == 'not_in' and isinstance(compare_value, list) and dep_value not in compare_value:
-                    should_display = True
+                elif operator == 'in' and isinstance(compare_value, list):
+                    compare_norm = [self._val_norm(v) for v in compare_value]
+                    should_display = self._val_norm(dep_value) in compare_norm
+                elif operator == 'not_in' and isinstance(compare_value, list):
+                    compare_norm = [self._val_norm(v) for v in compare_value]
+                    should_display = self._val_norm(dep_value) not in compare_norm
                 elif operator == 'exists' and dep_value is not None and not self._is_placeholder_or_empty(dep_value):
                     should_display = True
                 elif operator == 'not_exists' and (dep_value is None or self._is_placeholder_or_empty(dep_value)):
                     should_display = True
-                elif operator == 'contains' and isinstance(dep_value, list) and compare_value in dep_value:
+                elif operator == 'contains' and isinstance(dep_value, list) and self._val_norm(compare_value) in [self._val_norm(v) for v in dep_value]:
                     should_display = True
-                elif operator == 'not_contains' and isinstance(dep_value, list) and compare_value not in dep_value:
+                elif operator == 'not_contains' and isinstance(dep_value, list) and self._val_norm(compare_value) not in [self._val_norm(v) for v in dep_value]:
                     should_display = True
 
                 if not should_display:
@@ -339,17 +346,18 @@ class ValidationBaseService(ABC):
 
                     condition_met = False
 
-                    if operator == '==' and dep_value == compare_value:
+                    if operator == '==' and self._val_norm(dep_value) == self._val_norm(compare_value):
                         condition_met = True
-                    elif operator == '!=' and dep_value != compare_value:
-                        # Imposta che `dep_value != compare_value` richiede valore
-                        # ma solo se `dep_value` è davvero valorizzato
-                        if dep_value is not None:
+                    elif operator == '!=':
+                        # Richiede valore solo se `dep_value` è davvero valorizzato
+                        if dep_value is not None and self._val_norm(dep_value) != self._val_norm(compare_value):
                             condition_met = True
-                    elif operator == 'in' and isinstance(compare_value, list) and dep_value in compare_value:
-                        condition_met = True
-                    elif operator == 'not_in' and isinstance(compare_value, list) and dep_value not in compare_value:
-                        condition_met = True
+                    elif operator == 'in' and isinstance(compare_value, list):
+                        compare_norm = [self._val_norm(v) for v in compare_value]
+                        condition_met = self._val_norm(dep_value) in compare_norm
+                    elif operator == 'not_in' and isinstance(compare_value, list):
+                        compare_norm = [self._val_norm(v) for v in compare_value]
+                        condition_met = self._val_norm(dep_value) not in compare_norm
                     elif operator == 'exists':
                         if dep_value is not None and not self._is_placeholder_or_empty(dep_value):
                             condition_met = True
@@ -441,6 +449,31 @@ class ValidationBaseService(ABC):
 
         # CrossFieldRules
         for cross_rule in schema.get('crossFieldRules', []):
+            # Valuta applyIf: salta la regola se la condizione non è soddisfatta
+            apply_if = cross_rule.get('applyIf')
+            if apply_if:
+                af_field = apply_if['field']
+                af_operator = apply_if.get('operator', '==')
+                af_value = apply_if.get('value')
+                af_dep = self._valida_campo_nested(data, af_field)
+                apply_rule = False
+                if af_operator == '==' and self._val_norm(af_dep) == self._val_norm(af_value):
+                    apply_rule = True
+                elif af_operator == '!=' and self._val_norm(af_dep) != self._val_norm(af_value):
+                    apply_rule = True
+                elif af_operator == 'in' and isinstance(af_value, list):
+                    af_value_norm = [self._val_norm(v) for v in af_value]
+                    apply_rule = self._val_norm(af_dep) in af_value_norm
+                elif af_operator == 'not_in' and isinstance(af_value, list):
+                    af_value_norm = [self._val_norm(v) for v in af_value]
+                    apply_rule = self._val_norm(af_dep) not in af_value_norm
+                elif af_operator == 'exists':
+                    apply_rule = af_dep is not None and not self._is_placeholder_or_empty(af_dep)
+                elif af_operator == 'not_exists':
+                    apply_rule = af_dep is None or self._is_placeholder_or_empty(af_dep)
+                if not apply_rule:
+                    continue
+
             condition = cross_rule['condition']
 
             if 'anyOf' in condition:
@@ -450,7 +483,7 @@ class ValidationBaseService(ABC):
                 def _field_satisfies(field_path, cv=check_value):
                     values = self._resolve_field_values(data, field_path)
                     if cv is not None:
-                        return any(v == cv for v in values)
+                        return any(self._val_norm(v) == self._val_norm(cv) for v in values)
                     return any(values)
 
                 if not any(_field_satisfies(f) for f in fields):

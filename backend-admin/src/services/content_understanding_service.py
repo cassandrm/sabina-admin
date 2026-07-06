@@ -283,7 +283,7 @@ class ContentUnderstandingService:
             # Carica il prompt dal file di configurazione
             rules_prompt_path = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                "config", "rules-prompt.yaml"
+                "config", "rules.yaml"
             )
             try:
                 import yaml
@@ -291,9 +291,9 @@ class ContentUnderstandingService:
                     rules_config = yaml.safe_load(f)
                 generation_prompt_template = rules_config.get("generation_prompt", "")
                 if not generation_prompt_template:
-                    raise ValueError("generation_prompt non trovato in rules-prompt.yaml")
+                    raise ValueError("generation_prompt non trovato in rules.yaml")
             except Exception as e:
-                logger.error(f"Errore nel caricamento di rules-prompt.yaml: {e}")
+                logger.error(f"Errore nel caricamento di rules.yaml: {e}")
                 return {"validation_rules": None, "error": f"Failed to load prompt config: {str(e)}"}
 
             prompt = generation_prompt_template.replace("{schema_str}", schema_str)
